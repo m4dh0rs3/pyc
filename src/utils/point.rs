@@ -1,4 +1,4 @@
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub(crate) struct Point {
     x: f64,
     y: f64,
@@ -30,9 +30,52 @@ impl Point {
         self.x /= maq;
         self.y /= maq;
     }
+
+    pub(crate)fn cross_zero(&self, rhs: &Self) -> f64 {
+        self.x * rhs.y - self.y * rhs.x
+    }
+
+    pub(crate) fn intersect(p1: Self, p2: Self, o1: Self, o2: Self) -> Option<Self> {
+        let s1 = p2 - p1;
+        let s2 = o2 - o1;
+
+        let k = s1.cross_zero(&s2);
+
+        if k == 0.0 {
+            return None
+        }
+
+        let s = (- s1.y * (p1.x - o1.x) + s1.x * (p1.y - o1.y)) / k;
+        let t = (  s2.x * (p1.y - o1.y) - s2.y * (p1.x - o1.x)) / k;
+
+        if s >= 0.0 && s <= 1.0 && t >= 0.0 && t <= 1.0 {
+            Some(Self {
+                x: p1.x + t * s1.x,
+                y: p1.y + t * s1.y,
+            })
+        } else {
+            None
+        }
+    }
+
+    pub(crate) fn lerp(t: f64, a: Self, b: Self) -> Self {
+        Self {
+            x: lerp(t, a.x, b.x),
+            y: lerp(t, a.y, b.y),
+        }
+    }
+
+    pub(crate) fn bezier(t: f64, a: Self, b: Self, c: Self) -> Self {
+        Self {
+            x: bezier(t, a.x, b.x, c.x),
+            y: bezier(t, a.y, b.y, c.y),
+        }
+    }
 }
 
 use std::ops;
+
+use super::{bezier, lerp};
 
 impl ops::Add for Point {
     type Output = Self;
@@ -42,6 +85,13 @@ impl ops::Add for Point {
             x: self.x + rhs.x,
             y: self.y + rhs.y,
         }
+    }
+}
+
+impl ops::AddAssign for Point {
+    fn add_assign(&mut self, rhs: Self) {
+        self.x += rhs.x;
+        self.y += rhs.y;
     }
 }
 
@@ -56,6 +106,13 @@ impl ops::Sub for Point {
     }
 }
 
+impl ops::SubAssign for Point {
+    fn sub_assign(&mut self, rhs: Self) {
+        self.x -= rhs.x;
+        self.y -= rhs.y;
+    }
+}
+
 impl ops::Mul for Point {
     type Output = Self;
 
@@ -67,6 +124,13 @@ impl ops::Mul for Point {
     }
 }
 
+impl ops::MulAssign for Point {
+    fn mul_assign(&mut self, rhs: Self) {
+        self.x *= rhs.x;
+        self.y *= rhs.y;
+    }
+}
+
 impl ops::Mul<f64> for Point {
     type Output = Self;
 
@@ -75,6 +139,13 @@ impl ops::Mul<f64> for Point {
             x: self.x * rhs,
             y: self.y * rhs,
         }
+    }
+}
+
+impl ops::MulAssign<f64> for Point {
+    fn mul_assign(&mut self, rhs: f64) {
+        self.x *= rhs;
+        self.y *= rhs;
     }
 }
 
@@ -108,6 +179,13 @@ impl ops::Div<f64> for Point {
             x: self.x / rhs,
             y: self.y / rhs,
         }
+    }
+}
+
+impl ops::DivAssign<f64> for Point {
+    fn div_assign(&mut self, rhs: f64) {
+        self.x /= rhs;
+        self.y /= rhs;
     }
 }
 
