@@ -1,25 +1,13 @@
-//! # Utility functions
-//!
-//! The utility module consists of
-//! linear, multi-variable functions
-//! on `f64`
+pub(crate) mod point;
 
-/// Maps `x` from `[a, b]` to `[c, d]`
-pub fn remap(x: f64, a: f64, b: f64, c: f64, d: f64) -> f64 {
+pub(crate) fn remap(x: f64, a: f64, b: f64, c: f64, d: f64) -> f64 {
     x / (b - a) * (d - c) + c
 }
 
-/// Interpolate between `a` and `b` in `[a, b]`
-/// via `t in [0, 1]`, so `[0, 1]~[a, b]`
-///
-/// `f(t) = a + t * (b - a)`
-pub fn lerp(t: f64, a: f64, b: f64) -> f64 {
-    a + (b - a) * t
+pub(crate) fn lerp(t: f64, a: f64, b: f64) -> f64 {
+    a + t * (b - a)
 }
 
-/// Interpolate between `a` and `c` over `b`
-///
-/// `f(t) = (a + t * (b - a)) + t * (c - (a + t * (b - a)))`
-pub fn bezier(t: f64, a: f64, b: f64, c: f64) -> f64 {
+pub(crate) fn bezier(t: f64, a: f64, b: f64, c: f64) -> f64 {
     lerp(t, lerp(t, a, b), c)
 }

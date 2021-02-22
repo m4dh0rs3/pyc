@@ -1,4 +1,5 @@
-pub mod point;
-pub mod curve;
-pub mod utils;
-pub mod graph;
+mod utils;
+mod graph;
+mod curve;
+#[cfg(test)]
+mod tests;
