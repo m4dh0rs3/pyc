@@ -1,4 +1,4 @@
-pub(crate) mod point;
+pub mod point;
 pub use point::Point;
 
 pub fn remap(x: f64, a: f64, b: f64, c: f64, d: f64) -> f64 {
