@@ -1,3 +1,5 @@
+use super::{bezier, lerp};
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub(crate) struct Point {
     x: f64,
@@ -74,8 +76,6 @@ impl Point {
 }
 
 use std::ops;
-
-use super::{bezier, lerp};
 
 impl ops::Add for Point {
     type Output = Self;
