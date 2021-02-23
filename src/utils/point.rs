@@ -1,43 +1,43 @@
 use super::{bezier, lerp};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub(crate) struct Point {
+pub struct Point {
     x: f64,
     y: f64,
 }
 
 impl Point {
-    pub(crate) fn new(x: f64, y: f64) -> Self {
+    pub fn new(x: f64, y: f64) -> Self {
         Self { x, y, }
     }
 
-    pub(crate) fn from_polar(a: f64, r: f64) -> Self {
+    pub fn from_polar(a: f64, r: f64) -> Self {
         Self {
             x: r * a.cos(),
             y: r * a.sin(),
         }
     }
 
-    pub(crate) fn maq(&self) -> f64 {
+    pub fn maq(&self) -> f64 {
         (self.x.powi(2) + self.y.powi(2)).sqrt()
     }
 
-    pub(crate) fn angle(&self) -> f64 {
+    pub fn angle(&self) -> f64 {
         self.y.atan2(self.x)
     }
 
-    pub(crate) fn norm(&mut self) {
+    pub fn norm(&mut self) {
         let maq = self.maq();
 
         self.x /= maq;
         self.y /= maq;
     }
 
-    pub(crate)fn cross_zero(&self, rhs: &Self) -> f64 {
+    pub fn cross_zero(&self, rhs: &Self) -> f64 {
         self.x * rhs.y - self.y * rhs.x
     }
 
-    pub(crate) fn intersect(p1: Self, p2: Self, o1: Self, o2: Self) -> Option<Self> {
+    pub fn intersect(p1: Self, p2: Self, o1: Self, o2: Self) -> Option<Self> {
         let s1 = p2 - p1;
         let s2 = o2 - o1;
 
@@ -60,14 +60,14 @@ impl Point {
         }
     }
 
-    pub(crate) fn lerp(t: f64, a: Self, b: Self) -> Self {
+    pub fn lerp(t: f64, a: Self, b: Self) -> Self {
         Self {
             x: lerp(t, a.x, b.x),
             y: lerp(t, a.y, b.y),
         }
     }
 
-    pub(crate) fn bezier(t: f64, a: Self, b: Self, c: Self) -> Self {
+    pub fn bezier(t: f64, a: Self, b: Self, c: Self) -> Self {
         Self {
             x: bezier(t, a.x, b.x, c.x),
             y: bezier(t, a.y, b.y, c.y),

@@ -1,9 +1,9 @@
 use crate::utils::{point::Point, remap};
 
-pub(crate) struct Curve(Vec<Point>);
+pub struct Curve(Vec<Point>);
 
 impl Curve {
-    pub(crate) fn bezier(start: Point, mid: Point, end: Point, res: usize) -> Self {
+    pub fn bezier(start: Point, mid: Point, end: Point, res: usize) -> Self {
         let mut path = Vec::with_capacity(res + 1);
 
         for n in 0..=res {
@@ -18,7 +18,7 @@ impl Curve {
         Curve(path)
     }
 
-    pub(crate) fn circle(res: usize, radius: f64, mid: Point, start: f64, end: f64) -> Self {
+    pub fn circle(res: usize, radius: f64, mid: Point, start: f64, end: f64) -> Self {
         let mut path = Vec::with_capacity(res + 1);
 
         for n in 0..=res {
@@ -32,11 +32,11 @@ impl Curve {
         Curve(path)
     }
 
-    pub(crate) fn first(self) -> Point {
+    pub fn first(self) -> Point {
         *self.0.first().unwrap()
     }
 
-    pub(crate) fn last(self) -> Point {
+    pub fn last(self) -> Point {
         *self.0.last().unwrap()
     }
 }
