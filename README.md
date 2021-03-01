@@ -15,3 +15,6 @@ Internally they are an edge of a graph and a set of points making up the curvatu
 ### Graph
 
 The undirected graph of tiles and their intersections is used to find closed paths.
+
+A closed path is a cycle, which can be reduced to $st$-Paths, as described in
+[](https://arxiv.org/pdf/1205.2766.pdf)
