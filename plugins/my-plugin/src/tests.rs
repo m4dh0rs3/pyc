@@ -64,7 +64,7 @@ fn graph() {
 
     println!("{:?}", &graph);
 
-    graph.remove_node(&2);
+    graph.remove_node(2);
 
     println!("{:?}", &graph);
 }

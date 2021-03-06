@@ -5,4 +5,4 @@ mod edges;
 mod graph;
 mod path;
 
-pub use graph::Graph;
+pub use crate::graph::Graph;
