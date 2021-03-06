@@ -11,7 +11,7 @@ fn path_rotation() {
 }
 
 #[test]
-fn cycles() {
+fn safe_node_graph_cycles() {
     /*
         (1, 2),
         (1, 3),
@@ -46,8 +46,130 @@ fn cycles() {
 }
 
 #[test]
-fn graph() {
+fn safe_node_graph_graph() {
     let mut graph = SafeNodeGraph::new();
+
+    for i in 0..=9 {
+        graph.push_node(i);
+    }
+
+    graph.insert_edge(1, 2, ());
+    graph.insert_edge(1, 3, ());
+    graph.insert_edge(1, 4, ());
+    graph.insert_edge(2, 3, ());
+    graph.insert_edge(3, 4, ());
+    graph.insert_edge(2, 6, ());
+    graph.insert_edge(4, 6, ());
+    graph.insert_edge(8, 7, ());
+    graph.insert_edge(8, 9, ());
+    graph.insert_edge(9, 7, ());
+
+    println!("{:?}", &graph);
+
+    graph.remove_node(2);
+
+    println!("{:?}", &graph);
+}
+
+#[test]
+fn unsafe_node_graph_cycles() {
+    /*
+        (1, 2),
+        (1, 3),
+        (1, 4),
+        (2, 3),
+        (3, 4),
+        (2, 6),
+        (4, 6),
+        (8, 7),
+        (8, 9),
+        (9, 7),
+    */
+
+    let mut graph = UnsafeNodeGraph::new();
+
+    for i in 0..=9 {
+        graph.push_node(i);
+    }
+
+    graph.insert_edge(1, 2, ());
+    graph.insert_edge(1, 3, ());
+    graph.insert_edge(1, 4, ());
+    graph.insert_edge(2, 3, ());
+    graph.insert_edge(3, 4, ());
+    graph.insert_edge(2, 6, ());
+    graph.insert_edge(4, 6, ());
+    graph.insert_edge(8, 7, ());
+    graph.insert_edge(8, 9, ());
+    graph.insert_edge(9, 7, ());
+
+    println!("{:?}", graph.cycles());
+}
+
+#[test]
+fn unsafe_node_graph_graph() {
+    let mut graph = UnsafeNodeGraph::new();
+
+    for i in 0..=9 {
+        graph.push_node(i);
+    }
+
+    graph.insert_edge(1, 2, ());
+    graph.insert_edge(1, 3, ());
+    graph.insert_edge(1, 4, ());
+    graph.insert_edge(2, 3, ());
+    graph.insert_edge(3, 4, ());
+    graph.insert_edge(2, 6, ());
+    graph.insert_edge(4, 6, ());
+    graph.insert_edge(8, 7, ());
+    graph.insert_edge(8, 9, ());
+    graph.insert_edge(9, 7, ());
+
+    println!("{:?}", &graph);
+
+    graph.remove_node(2);
+
+    println!("{:?}", &graph);
+}
+
+#[test]
+fn edge_graph_cycles() {
+    /*
+        (1, 2),
+        (1, 3),
+        (1, 4),
+        (2, 3),
+        (3, 4),
+        (2, 6),
+        (4, 6),
+        (8, 7),
+        (8, 9),
+        (9, 7),
+    */
+
+    let mut graph = EdgeGraph::new();
+
+    for i in 0..=9 {
+        graph.push_node(i);
+    }
+
+    graph.insert_edge(1, 2, ());
+    graph.insert_edge(1, 3, ());
+    graph.insert_edge(1, 4, ());
+    graph.insert_edge(2, 3, ());
+    graph.insert_edge(3, 4, ());
+    graph.insert_edge(2, 6, ());
+    graph.insert_edge(4, 6, ());
+    graph.insert_edge(8, 7, ());
+    graph.insert_edge(8, 9, ());
+    graph.insert_edge(9, 7, ());
+
+    println!("{:?}", graph.cycles());
+}
+
+#[test]
+fn edge_graph_graph() {
+    let mut graph = EdgeGraph::new();
 
     for i in 0..=9 {
         graph.push_node(i);

@@ -5,7 +5,7 @@ mod edges;
 mod graph;
 mod path;
 
-pub use crate::graph::SafeNodeGraph;
+pub use crate::graph::EdgeGraph;
 
 pub trait Graph<K, N, E>
 where

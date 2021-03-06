@@ -125,11 +125,13 @@ where
     }
 
     fn push_node(&mut self, value: V) -> usize {
+        self.count += 1;
+
         match self.graph.insert(self.count, (value, BTreeSet::new())) {
             Some(_) => panic!("Expected no entry in `Graph`"),
             None => {}
         }
-        self.count += 1;
+
         self.count
     }
 
@@ -174,7 +176,65 @@ where
     }
 }
 
-pub struct SafeGraph<N, E> {
+#[derive(Debug, Clone)]
+pub struct EdgeGraph<N, E> {
     nodes: BTreeMap<usize, N>,
-    edges: Vec<(E, (usize, usize))>,
+    edges: BTreeMap<(usize, usize), E>,
+    count: usize,
+}
+
+impl<N, E> EdgeGraph<N, E>
+where
+    E: Clone,
+{
+    pub fn new() -> Self {
+        Self {
+            nodes: BTreeMap::new(),
+            edges: BTreeMap::new(),
+            count: 0,
+        }
+    }
+
+    fn edges(&self) -> Edges {
+        self.edges
+            .clone()
+            .into_iter()
+            .map(|(ij, edge)| ij)
+            .collect()
+    }
+}
+
+impl<N, E> Graph<usize, N, E> for EdgeGraph<N, E>
+where
+    E: Clone,
+{
+    fn get_node<'a>(&'a self, key: usize) -> Option<&'a N> {
+        self.nodes.get(&key)
+    }
+
+    fn push_node(&mut self, node: N) -> usize {
+        self.count += 1;
+        self.nodes.insert(self.count, node);
+        self.count
+    }
+
+    fn remove_node(&mut self, key: usize) -> Option<N> {
+        self.nodes.remove(&key)
+    }
+
+    fn get_edge<'a>(&'a self, i: usize, j: usize) -> Option<&'a E> {
+        self.edges.get(&(i, j))
+    }
+
+    fn insert_edge(&mut self, i: usize, j: usize, edge: E) -> Option<E> {
+        self.edges.insert((i, j), edge)
+    }
+
+    fn remove_edge(&mut self, i: usize, j: usize) -> Option<E> {
+        self.edges.remove(&(i, j))
+    }
+
+    fn cycles(&self) -> Vec<Path> {
+        cycles(&self.edges())
+    }
 }
