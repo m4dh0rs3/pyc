@@ -37,11 +37,11 @@ impl<V> Graph<usize, V, ()> for UnsafeNodeGraph<V> {
         self.0.len() - 1
     }
 
-    fn get_edge<'a>(&'a self, i: usize, j: usize) -> Option<&'a ()> {
+    fn get_edge<'a>(&'a self, _i: usize, _j: usize) -> Option<&'a ()> {
         None
     }
 
-    fn insert_edge(&mut self, i: usize, j: usize, edge: ()) -> Option<()> {
+    fn insert_edge(&mut self, i: usize, j: usize, _edge: ()) -> Option<()> {
         if !self.0[i].1.contains(&j) {
             self.0[i].1.push(j);
         } else {
@@ -135,11 +135,11 @@ where
         self.count
     }
 
-    fn get_edge<'a>(&'a self, i: usize, j: usize) -> Option<&'a ()> {
+    fn get_edge<'a>(&'a self, _i: usize, _j: usize) -> Option<&'a ()> {
         None
     }
 
-    fn insert_edge(&mut self, i: usize, j: usize, edge: ()) -> Option<()> {
+    fn insert_edge(&mut self, i: usize, j: usize, _edge: ()) -> Option<()> {
         self.graph.entry(i).and_modify(|(_, edge)| {
             edge.insert(j);
         });
@@ -196,11 +196,7 @@ where
     }
 
     fn edges(&self) -> Edges {
-        self.edges
-            .clone()
-            .into_iter()
-            .map(|(ij, edge)| ij)
-            .collect()
+        self.edges.clone().into_iter().map(|(ij, _)| ij).collect()
     }
 }
 
@@ -213,9 +209,9 @@ where
     }
 
     fn push_node(&mut self, node: N) -> usize {
-        self.count += 1;
         self.nodes.insert(self.count, node);
-        self.count
+        self.count += 1;
+        self.count - 1
     }
 
     fn remove_node(&mut self, key: usize) -> Option<N> {
