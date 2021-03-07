@@ -206,6 +206,14 @@ where
     pub fn nodes(&mut self) -> &BTreeMap<usize, N> {
         &self.nodes
     }
+
+    pub fn last_node(&self) -> Option<&N> {
+        self.nodes.get(&self.count)
+    }
+
+    pub fn count(&self) -> usize {
+        self.count
+    }
 }
 
 impl<N, E> Graph<usize, N, E> for EdgeGraph<N, E>
@@ -217,9 +225,9 @@ where
     }
 
     fn push_node(&mut self, node: N) -> usize {
-        self.nodes.insert(self.count, node);
         self.count += 1;
-        self.count - 1
+        self.nodes.insert(self.count, node);
+        self.count
     }
 
     fn remove_node(&mut self, key: usize) -> Option<N> {
