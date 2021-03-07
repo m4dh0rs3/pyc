@@ -269,6 +269,14 @@ where
         }
     }
 
+    pub fn edges(&mut self) -> &Vec<((usize, usize), E)> {
+        &self.edges
+    }
+
+    pub fn nodes(&mut self) -> &Vec<N> {
+        &self.nodes
+    }
+
     pub fn fit_edge(&mut self, node_a: N, node_b: N, edge: E) {
         let i = self
             .nodes
