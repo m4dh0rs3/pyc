@@ -32,8 +32,8 @@ pub enum Point {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Tile {
-    dir: TileDir,
-    radius: i8,
+    pub dir: TileDir,
+    pub radius: i8,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
