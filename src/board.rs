@@ -110,5 +110,6 @@ impl Board {
         );
 
         self.arrow.1 += tile.rotation();
+        self.arrow.0 = end;
     }
 }
