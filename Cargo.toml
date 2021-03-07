@@ -6,19 +6,6 @@ edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-
-[lib]
-crate-type = ["cdylib", "rlib"]
-
 [dependencies]
-math = { git = "https://github.com/m4dh0rs3/rml.git" }
-graph = { git = "https://github.com/m4dh0rs3/rgl.git" }
-
-eframe = { version = "0.10.0", optional = true} # egui, epi and web+native backends
-serde = { version = "1", features = ["derive"], optional = true }
-
-[features]
-
-egui = ["eframe"]
-http = ["eframe/http"] # http requests
-persistence = ["eframe/persistence", "serde"] # persist app state on shutdown
+math = { git = "https://github.com/m4dh0rs3/math.git" }
+graph = { git = "https://github.com/m4dh0rs3/graph.git" }

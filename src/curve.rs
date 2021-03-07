@@ -1,6 +1,7 @@
 use math::{remap, Vec2D};
 
-pub struct Curve(Vec<Vec2D>);
+#[derive(Debug, Clone)]
+pub struct Curve(pub Vec<Vec2D>);
 
 impl Curve {
     pub fn bezier(start: Vec2D, mid: Vec2D, end: Vec2D, res: usize) -> Self {
