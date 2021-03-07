@@ -3,7 +3,7 @@ use std::{
     fmt::Debug,
 };
 
-use crate::path::Path;
+use crate::{edges, path::Path};
 use crate::{edges::*, Graph};
 
 #[derive(Debug, Clone)]
@@ -248,5 +248,82 @@ where
 
     fn cycles(&self) -> Vec<Path> {
         cycles(&self.edge_list())
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct EdgesGraph<N, E> {
+    nodes: Vec<N>,
+    edges: Vec<((usize, usize), E)>,
+}
+
+impl<N, E> EdgesGraph<N, E> {
+    pub fn new() -> Self {
+        Self {
+            nodes: Vec::new(),
+            edges: Vec::new(),
+        }
+    }
+}
+
+impl<N, E> Graph<usize, N, E> for EdgesGraph<N, E>
+where
+    E: Clone,
+{
+    fn get_node<'a>(&'a self, key: usize) -> Option<&'a N> {
+        self.nodes.get(key)
+    }
+
+    fn push_node(&mut self, node: N) -> usize {
+        self.nodes.push(node);
+        self.nodes.len() - 1
+    }
+
+    fn remove_node(&mut self, key: usize) -> Option<N> {
+        if key >= self.nodes.len() {
+            return None;
+        }
+
+        let node = self.nodes.remove(key);
+
+        self.edges.retain(|((i, j), _)| i != &key || j != &key);
+
+        for ((i, j), _) in self.edges.iter_mut() {
+            if &*j >= &key {
+                *j -= 1;
+            }
+
+            if &*i >= &key {
+                *i -= 1;
+            }
+        }
+
+        return Some(node);
+    }
+
+    fn get_edge<'a>(&'a self, i: usize, j: usize) -> Option<&'a E> {
+        for (n, ((k, l), _)) in self.edges.iter().enumerate() {
+            if &i == k && &j == l {
+                return self.edges.get(n).map(|(_, edge)| edge);
+            }
+        }
+
+        None
+    }
+
+    fn insert_edge(&mut self, i: usize, j: usize, edge: E) -> Option<E> {
+        self.edges.push(((i, j), edge));
+
+        None
+    }
+
+    fn remove_edge(&mut self, i: usize, j: usize) -> Option<E> {
+        self.edges.retain(|((k, l), _)| !(&i == k && &j == l));
+
+        None
+    }
+
+    fn cycles(&self) -> Vec<Vec<usize>> {
+        cycles(&self.edges.iter().map(|(ij, _)| ij).cloned().collect())
     }
 }
