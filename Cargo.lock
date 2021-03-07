@@ -3,12 +3,12 @@
 [[package]]
 name = "graph"
 version = "0.1.0"
-source = "git+https://github.com/m4dh0rs3/graph.git#cbc9c349ee21bed0b4cd2a4a12d6ab8a7fcb14c9"
+source = "git+https://github.com/m4dh0rs3/graph.git#bd77057d828c0a055cffe96159f2351748f0721f"
 
 [[package]]
 name = "math"
 version = "0.1.0"
-source = "git+https://github.com/m4dh0rs3/math.git#ad1f42fcaea800d7f05a1754c797fb9d6cf09f1e"
+source = "git+https://github.com/m4dh0rs3/math.git#d09c5049b21d3c0dec09ac8d52e6439690284770"
 
 [[package]]
 name = "pyc"
