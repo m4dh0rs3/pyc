@@ -195,8 +195,16 @@ where
         }
     }
 
-    fn edges(&self) -> Edges {
+    fn edge_list(&self) -> Edges {
         self.edges.clone().into_iter().map(|(ij, _)| ij).collect()
+    }
+
+    pub fn edges(&mut self) -> &BTreeMap<(usize, usize), E> {
+        &self.edges
+    }
+
+    pub fn nodes(&mut self) -> &BTreeMap<usize, N> {
+        &self.nodes
     }
 }
 
@@ -231,6 +239,6 @@ where
     }
 
     fn cycles(&self) -> Vec<Path> {
-        cycles(&self.edges())
+        cycles(&self.edge_list())
     }
 }
