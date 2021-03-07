@@ -257,18 +257,39 @@ pub struct EdgesGraph<N, E> {
     edges: Vec<((usize, usize), E)>,
 }
 
-impl<N, E> EdgesGraph<N, E> {
+impl<N, E> EdgesGraph<N, E>
+where
+    N: PartialEq,
+    E: Clone,
+{
     pub fn new() -> Self {
         Self {
             nodes: Vec::new(),
             edges: Vec::new(),
         }
     }
+
+    pub fn fit_edge(&mut self, node_a: N, node_b: N, edge: E) {
+        let i = self
+            .nodes
+            .iter()
+            .position(|node| node == &node_a)
+            .unwrap_or_else(|| self.push_node(node_a));
+
+        let j = self
+            .nodes
+            .iter()
+            .position(|node| node == &node_b)
+            .unwrap_or_else(|| self.push_node(node_b));
+
+        self.insert_edge(i, j, edge);
+    }
 }
 
 impl<N, E> Graph<usize, N, E> for EdgesGraph<N, E>
 where
     E: Clone,
+    N: PartialEq,
 {
     fn get_node<'a>(&'a self, key: usize) -> Option<&'a N> {
         self.nodes.get(key)
