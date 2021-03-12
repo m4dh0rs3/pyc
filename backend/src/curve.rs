@@ -1,7 +1,10 @@
 use math::{remap, Vec2D};
 
 #[derive(Debug, Clone)]
-pub struct Curve(pub Vec<Vec2D>);
+pub struct Curve {
+    pub path: Vec<Vec2D>,
+    pub mid: Vec2D,
+}
 
 impl Curve {
     pub fn bezier(start: Vec2D, mid: Vec2D, end: Vec2D, res: usize) -> Self {
@@ -16,7 +19,7 @@ impl Curve {
             ));
         }
 
-        Curve(path)
+        Curve { path, mid }
     }
 
     pub fn circle(res: usize, radius: f64, mid: Vec2D, start: f64, end: f64) -> Self {
@@ -28,15 +31,15 @@ impl Curve {
             );
         }
 
-        Curve(path)
+        Curve { path, mid }
     }
 
     pub fn first(&self) -> Vec2D {
-        self.0.first().unwrap().clone()
+        self.path.first().unwrap().clone()
     }
 
     pub fn last(&self) -> Vec2D {
-        self.0.last().unwrap().clone()
+        self.path.last().unwrap().clone()
     }
 
     pub fn intersect(&self, rhs: &Self) -> Vec<Intersection> {
@@ -45,8 +48,8 @@ impl Curve {
 
         let mut intersections = Vec::new();
 
-        for (i, p2) in self.0.iter().enumerate() {
-            for (j, o2) in rhs.0.iter().enumerate() {
+        for (i, p2) in self.path.iter().enumerate() {
+            for (j, o2) in rhs.path.iter().enumerate() {
                 if let Some(s) = Vec2D::intersect(p1, p2.clone(), o1, o2.clone()) {
                     intersections.push(Intersection { at: s, i, j });
                 }
