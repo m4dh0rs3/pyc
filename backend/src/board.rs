@@ -59,8 +59,8 @@ impl Tile {
             + Vec2D::from_polar(
                 angle + std::f64::consts::FRAC_PI_2,
                 match &self.dir {
-                    TileDir::UpLeft | TileDir::DownLeft => self.radius,
-                    TileDir::UpRight | TileDir::DownRight => -self.radius,
+                    TileDir::UpLeft | TileDir::DownLeft => -self.radius,
+                    TileDir::UpRight | TileDir::DownRight => self.radius,
                 } as f64,
             );
 
@@ -85,7 +85,7 @@ impl Board {
             },
             points: vec![vec![Point::Free; 11]; 11],
             tiles: BTreeSet::new(),
-            arrow: (start, 0.0),
+            arrow: (start, -std::f64::consts::FRAC_PI_2),
             score: (0, 0),
             step: 0,
             game_state: GameState::Undecided,
