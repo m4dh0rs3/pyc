@@ -1,0 +1,14 @@
+.board {
+    margin: auto;
+    display: block;
+    border: 3px solid black;
+    border-radius: 3px;
+}
+
+.tile-pad {
+    margin: auto;
+}
+
+.tile-pad button {
+    width: 16.66%;
+}

@@ -1,8 +1,8 @@
-use std::f64::consts::TAU;
+/* use std::f64::consts::TAU;
 
 use math::Vec2D;
 use seed::{prelude::*, *};
-use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
+use web_sys::HtmlCanvasElement;
 
 use backend::*;
 
@@ -32,7 +32,7 @@ impl Default for Model {
         Model {
             canvas: ElRef::default(),
             tiles: [false; 12],
-            board: Board::new(Vec2D::new(4.0, 4.0)),
+            board: Board::new(Vec2D::new(4, 4)),
         }
     }
 }
@@ -126,10 +126,10 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
 
                 ctx.begin_path();
 
-                let o: Vec2D = curve.first() * scale + offset;
+                let o: Vec2D<f64> = curve.first() * scale + offset;
                 ctx.move_to(o.x, o.y);
 
-                let last: Vec2D = curve.last() * scale + offset;
+                let last: Vec2D<f64> = curve.last() * scale + offset;
 
                 ctx.set_stroke_style(&JsValue::from_str("red"));
                 ctx.line_to(last.x, last.y);
@@ -151,7 +151,11 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
 
             ctx.set_stroke_style(&JsValue::from_str("red"));
 
+            web_sys::console::clear();
+
             for node in model.board.graph.nodes() {
+                web_sys::console::log_1(&JsValue::from_str(&format!("{:?}", &node)));
+
                 ctx.begin_path();
 
                 ctx.arc(
@@ -165,18 +169,21 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                 ctx.stroke();
             }
 
-            /* ctx.begin_path();
+            ctx.begin_path();
 
             ctx.move_to(
-                offset.x + model.board.arrow.0.x * scale.x,
-                offset.y + model.board.arrow.0.y * scale.y,
-            );
-            ctx.line_to(
-                offset.x + model.board.arrow.0.x * scale.x + 20. * model.board.arrow.1.cos(),
-                offset.y + model.board.arrow.0.y * scale.y + 20. * model.board.arrow.1.sin(),
+                offset.x + model.board.arrow.0.x as f64 * scale.x,
+                offset.y + model.board.arrow.0.y as f64 * scale.y,
             );
 
-            ctx.stroke(); */
+            let angle: f64 = model.board.arrow.1.into();
+
+            ctx.line_to(
+                offset.x + model.board.arrow.0.x as f64 * scale.x + 20. * angle.cos(),
+                offset.y + model.board.arrow.0.y as f64 * scale.y + 20. * angle.sin(),
+            );
+
+            ctx.stroke();
 
             /* ctx.set_line_width(10.);
             ctx.stroke_rect(75., 140., 150., 110.);
@@ -193,54 +200,18 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             model.tiles[num] = true;
 
             match num {
-                0 => model.board.tile(Tile {
-                    dir: TileDir::UpLeft,
-                    radius: 1,
-                }),
-                1 => model.board.tile(Tile {
-                    dir: TileDir::UpLeft,
-                    radius: 2,
-                }),
-                2 => model.board.tile(Tile {
-                    dir: TileDir::UpLeft,
-                    radius: 3,
-                }),
-                3 => model.board.tile(Tile {
-                    dir: TileDir::UpRight,
-                    radius: 3,
-                }),
-                4 => model.board.tile(Tile {
-                    dir: TileDir::UpRight,
-                    radius: 2,
-                }),
-                5 => model.board.tile(Tile {
-                    dir: TileDir::UpRight,
-                    radius: 1,
-                }),
-                6 => model.board.tile(Tile {
-                    dir: TileDir::DownLeft,
-                    radius: 1,
-                }),
-                7 => model.board.tile(Tile {
-                    dir: TileDir::DownLeft,
-                    radius: 2,
-                }),
-                8 => model.board.tile(Tile {
-                    dir: TileDir::DownLeft,
-                    radius: 3,
-                }),
-                9 => model.board.tile(Tile {
-                    dir: TileDir::DownRight,
-                    radius: 3,
-                }),
-                10 => model.board.tile(Tile {
-                    dir: TileDir::DownRight,
-                    radius: 2,
-                }),
-                11 => model.board.tile(Tile {
-                    dir: TileDir::DownRight,
-                    radius: 1,
-                }),
+                0 => model.board.up_left_1(),
+                1 => model.board.up_left_2(),
+                2 => model.board.up_left_3(),
+                3 => model.board.up_right_3(),
+                4 => model.board.up_right_2(),
+                5 => model.board.up_right_1(),
+                6 => model.board.up_left_1(),
+                7 => model.board.up_left_2(),
+                8 => model.board.up_left_3(),
+                9 => model.board.up_right_3(),
+                10 => model.board.up_right_2(),
+                11 => model.board.up_right_1(),
                 _ => {}
             }
 
@@ -331,4 +302,284 @@ fn view(model: &Model) -> Node<Msg> {
 #[wasm_bindgen(start)]
 pub fn start() {
     App::start("app", init, update, view);
+}
+ */
+
+/* // (Lines like the one below ignore selected Clippy rules
+//  - it's useful when you want to check your code with `cargo make verify`
+// but some rules are too "annoying" or are not applicable for your case.)
+#![allow(clippy::wildcard_imports)]
+
+use seed::{prelude::*, *};
+
+// ------ ------
+//     Init
+// ------ ------
+
+// `init` describes what should happen when your app started.
+fn init(_: Url, _: &mut impl Orders<Msg>) -> Model {
+    Model::default()
+}
+
+// ------ ------
+//     Model
+// ------ ------
+
+// `Model` describes our app state.
+struct Model {
+
+}
+
+// ------ ------
+//    Update
+// ------ ------
+
+// (Remove the line below once any of your `Msg` variants doesn't implement `Copy`.)
+#[derive(Copy, Clone)]
+// `Msg` describes the different events you can modify state with.
+enum Msg {
+    Increment,
+}
+
+// `update` describes how to handle each `Msg`.
+fn update(msg: Msg, model: &mut Model, _: &mut impl Orders<Msg>) {
+    match msg {
+        Msg::Increment => *model += 1,
+    }
+}
+
+// ------ ------
+//     View
+// ------ ------
+
+// (Remove the line below once your `Model` become more complex.)
+#[allow(clippy::trivially_copy_pass_by_ref)]
+// `view` describes what to display.
+fn view(model: &Model) -> Node<Msg> {
+    div![
+        "This is a counter: ",
+        C!["counter"],
+        button![model, ev(Ev::Click, |_| Msg::Increment),],
+    ]
+}
+
+// ------ ------
+//     Start
+// ------ ------
+
+// (This function is invoked by `init` function in `index.html`.)
+#[wasm_bindgen(start)]
+pub fn start() {
+    // Mount the `app` to the element with the `id` "app".
+    App::start("app", init, update, view);
+} */
+
+use std::collections::BTreeSet;
+
+use backend::Board;
+use backend::Tile;
+use math::Vec2D;
+use seed::{prelude::*, *};
+
+struct PYC {
+    board: Board,
+    canvas: ElRef<web_sys::HtmlCanvasElement>,
+    size: u16,
+    scale: f64,
+    offset: f64,
+}
+
+const CANVAS_SIZE: u16 = 400;
+
+impl PYC {
+    fn init(_: Url, orders: &mut impl Orders<Msg>) -> Self {
+        orders.after_next_render(|_| Msg::Redraw);
+
+        Self {
+            board: Board::empty_start(Vec2D::new(5, 5)),
+            canvas: ElRef::default(),
+            size: CANVAS_SIZE,
+            scale: CANVAS_SIZE as f64 / 11.0,
+            offset: CANVAS_SIZE as f64 / 22.0,
+        }
+    }
+
+    fn update(msg: Msg, model: &mut PYC, orders: &mut impl Orders<Msg>) {
+        match msg {
+            Msg::Redraw => {
+                model.draw();
+            }
+            Msg::Tile(tile) => {
+                model.board.step(tile);
+                orders.send_msg(Msg::Redraw);
+            }
+        }
+    }
+
+    fn view(&self) -> Node<Msg> {
+        div![
+            canvas![
+                C!["board"],
+                el_ref(&self.canvas),
+                attrs!(
+                    At::Width => px(self.size),
+                    At::Height => px(self.size),
+                ),
+                /* style!(
+                    St::Border => "1px solid black",
+                ) */
+            ],
+            tile_pad(self.board.tiles(), self.size)
+        ]
+    }
+
+    fn draw(&mut self) {
+        let canvas = self.canvas.get().expect("Could not get canvas");
+        let ctx = seed::canvas_context_2d(&canvas);
+
+        self.clear(&ctx);
+        self.draw_points(&ctx);
+        //self.draw_nodes(&ctx);
+        self.draw_path(&ctx);
+        self.draw_intersections(&ctx);
+        self.draw_arrow(&ctx);
+    }
+
+    fn clear(&self, ctx: &web_sys::CanvasRenderingContext2d) {
+        ctx.clear_rect(0.0, 0.0, self.size as f64, self.size as f64);
+    }
+
+    fn draw_points(&self, ctx: &web_sys::CanvasRenderingContext2d) {
+        for i in 0_u8..=10 {
+            for j in 0_u8..=10 {
+                ctx.begin_path();
+
+                ctx.arc(
+                    self.offset + self.scale * i as f64,
+                    self.offset + self.scale * j as f64,
+                    2.,
+                    0.,
+                    std::f64::consts::TAU,
+                )
+                .unwrap();
+
+                ctx.fill();
+            }
+        }
+    }
+
+    fn draw_path(&self, ctx: &web_sys::CanvasRenderingContext2d) {
+        ctx.begin_path();
+
+        for (_, edge) in self.board.graph().edges() {
+            let mut o = edge.first() * self.scale + self.offset;
+
+            for p in edge.path().iter().skip(1) {
+                let p = *p * self.scale + self.offset;
+
+                ctx.move_to(o.x, o.y);
+                ctx.line_to(p.x, p.y);
+
+                o = p;
+            }
+        }
+
+        ctx.stroke();
+    }
+
+    fn draw_arrow(&self, ctx: &web_sys::CanvasRenderingContext2d) {
+        let arrow = self.board.arrow();
+
+        let mut position: Vec2D<f64> = (*arrow.position()).into();
+        position *= self.scale;
+        position += self.offset;
+
+        let direction = Vec2D::from_polar((*arrow.rotation()).into(), self.scale * 0.4) + position;
+
+        ctx.begin_path();
+
+        ctx.move_to(position.x, position.y);
+        ctx.line_to(direction.x, direction.y);
+
+        ctx.stroke();
+    }
+
+    fn draw_nodes(&self, ctx: &web_sys::CanvasRenderingContext2d) {
+        for node in self.board.graph().nodes() {
+            ctx.begin_path();
+
+            ctx.arc(
+                self.offset + self.scale * node.x as f64,
+                self.offset + self.scale * node.y as f64,
+                4.,
+                0.,
+                std::f64::consts::TAU,
+            )
+            .unwrap();
+
+            ctx.stroke();
+        }
+    }
+
+    fn draw_intersections(&self, ctx: &web_sys::CanvasRenderingContext2d) {
+        for intersection in self.board.intersection_points() {
+            ctx.begin_path();
+
+            ctx.arc(
+                self.offset + self.scale * intersection.x as f64,
+                self.offset + self.scale * intersection.y as f64,
+                4.,
+                0.,
+                std::f64::consts::TAU,
+            )
+            .unwrap();
+
+            ctx.stroke();
+        }
+    }
+}
+
+fn tile_pad(tiles: &BTreeSet<Tile>, width: u16) -> Node<Msg> {
+    div![
+        C!["tile-pad"],
+        style! {
+            St::Width => px(width),
+        },
+        div![
+            tile_button(Tile::up_left_1(), tiles),
+            tile_button(Tile::up_left_2(), tiles),
+            tile_button(Tile::up_left_3(), tiles),
+            tile_button(Tile::up_right_3(), tiles),
+            tile_button(Tile::up_right_2(), tiles),
+            tile_button(Tile::up_right_1(), tiles),
+        ],
+        div![
+            tile_button(Tile::down_left_1(), tiles),
+            tile_button(Tile::down_left_2(), tiles),
+            tile_button(Tile::down_left_3(), tiles),
+            tile_button(Tile::down_right_3(), tiles),
+            tile_button(Tile::down_right_2(), tiles),
+            tile_button(Tile::down_right_1(), tiles),
+        ],
+    ]
+}
+
+fn tile_button(tile: Tile, tiles: &BTreeSet<Tile>) -> Node<Msg> {
+    button![
+        format!("{:?}", &tile),
+        IF!(tiles.contains(&tile) => attrs!{At::Disabled => true}),
+        ev(Ev::Click, move |_| Msg::Tile(tile))
+    ]
+}
+
+#[derive(Clone, Copy)]
+enum Msg {
+    Redraw,
+    Tile(Tile),
+}
+
+#[wasm_bindgen(start)]
+pub fn start() {
+    // Mount the `app` to the element with the `id` "app".
+    App::start("app", PYC::init, PYC::update, PYC::view);
 }

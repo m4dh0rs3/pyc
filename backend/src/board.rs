@@ -1,115 +1,134 @@
-use crate::Curve;
-use core::f64;
-use graph::EdgesGraph;
-use graph::Graph;
-use math::Vec2D;
 use std::collections::BTreeSet;
 
+use crate::curve::{Curve, Intersection};
+use graph::EdgesGraph;
+use math::Vec2D;
+
+use crate::arrow::{Arrow, Rotation};
+use crate::tile::Tile;
+
+const CURVE_RESOULUTION: usize = 12;
+
 pub struct Board {
-    pub graph: EdgesGraph<Vec2D, Curve>,
-    pub points: Vec<Vec<Point>>,
-    pub tiles: BTreeSet<Tile>,
-    pub arrow: (Vec2D, f64),
-    pub score: (u8, u8),
-    pub step: u8,
-    pub game_state: GameState,
-}
-
-pub enum GameState {
-    Undecided,
-    Invalid,
-    AWon,
-    BWon,
-    Draw,
-}
-
-#[derive(Debug, Clone)]
-pub enum Point {
-    Free,
-    TakenA,
-    TakenB,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub struct Tile {
-    pub dir: TileDir,
-    pub radius: i8,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub enum TileDir {
-    UpLeft,
-    UpRight,
-    DownLeft,
-    DownRight,
-}
-
-impl Tile {
-    pub fn control(&self, start: Vec2D, angle: f64) -> (Vec2D, Vec2D) {
-        let mid = start
-            + Vec2D::from_polar(
-                angle,
-                match &self.dir {
-                    TileDir::UpLeft | TileDir::UpRight => self.radius,
-                    TileDir::DownLeft | TileDir::DownRight => -self.radius,
-                } as f64,
-            );
-
-        let end = mid
-            + Vec2D::from_polar(
-                angle + std::f64::consts::FRAC_PI_2,
-                match &self.dir {
-                    TileDir::UpLeft | TileDir::DownLeft => -self.radius,
-                    TileDir::UpRight | TileDir::DownRight => self.radius,
-                } as f64,
-            );
-
-        (mid, end)
-    }
-
-    pub fn rotation(&self) -> f64 {
-        match self.dir {
-            TileDir::UpLeft | TileDir::DownLeft => -std::f64::consts::FRAC_PI_2,
-            TileDir::UpRight | TileDir::DownRight => std::f64::consts::FRAC_PI_2,
-        }
-    }
+    step: u8,
+    active: Player,
+    arrow: Arrow,
+    graph: EdgesGraph<Vec2D<i8>, Curve>,
+    tiles: BTreeSet<Tile>,
+    points: [[Option<Player>; 11]; 11],
+    score: Score,
+    state: State,
 }
 
 impl Board {
-    pub fn new(start: Vec2D) -> Self {
+    pub fn empty_start(origin: Vec2D<i8>) -> Self {
         Self {
-            graph: {
-                let mut graph = EdgesGraph::new();
-                graph.push_node(start);
-                graph
-            },
-            points: vec![vec![Point::Free; 11]; 11],
-            tiles: BTreeSet::new(),
-            arrow: (start, -std::f64::consts::FRAC_PI_2),
-            score: (0, 0),
             step: 0,
-            game_state: GameState::Undecided,
+            active: Player::Alpha,
+            arrow: Arrow {
+                position: origin,
+                rotation: Rotation::Left,
+            },
+            graph: EdgesGraph::with_capacity(13, 15),
+            tiles: BTreeSet::new(),
+            points: [[None; 11]; 11],
+            score: Score { alpha: 0, beta: 0 },
+            state: State::Undecided,
         }
     }
 
-    pub fn tile(&mut self, tile: Tile) {
+    pub fn step(&mut self, tile: Tile) {
         self.step += 1;
 
-        if !self.tiles.insert(tile) {
-            self.game_state = GameState::Invalid;
+        if self.tiles.contains(&tile) {
+            self.state = State::Invalid;
+        } else {
+            self.tiles.insert(tile);
         }
 
-        let (mid, end) = tile.control(self.arrow.0, self.arrow.1);
+        let (start, mid, end) = self.arrow.control_points(&tile);
 
-        let detail = 12;
+        let mut backwards: bool = false;
 
-        self.graph.fit_edge(
-            self.arrow.0,
-            end,
-            Curve::bezier(self.arrow.0, mid, end, detail),
-        );
+        if let Some((_, curve)) = self.graph.edges.last() {
+            if curve.mid == mid
+                && ((curve.start == start && curve.end == end)
+                    || (curve.start == end && curve.end == start))
+            {
+                backwards = true;
+            }
+        }
 
-        self.arrow.1 += tile.rotation();
-        self.arrow.0 = end;
+        if !backwards {
+            let curve = Curve::bezier(start.into(), mid.into(), end.into(), CURVE_RESOULUTION);
+            self.graph.fit_edge(start, end, curve);
+        }
+
+        self.arrow.position = end;
+        self.arrow.rotation = self.arrow.rotation + (*tile.horizontal()).into();
+
+        self.active = match self.active {
+            Player::Alpha => Player::Beta,
+            Player::Beta => Player::Alpha,
+        }
     }
+
+    fn intersections(&self) -> Vec<PathIntersection> {
+        let mut path_intersections = Vec::new();
+
+        for (i, (_, curve)) in self.graph.edges().iter().enumerate() {
+            for (j, (_, other)) in self.graph.edges().iter().enumerate() {
+                path_intersections.append(
+                    &mut curve
+                        .intersections(&other)
+                        .into_iter()
+                        .map(|s| PathIntersection { at: s, i, j })
+                        .collect(),
+                );
+            }
+        }
+
+        path_intersections
+    }
+
+    pub fn intersection_points(&self) -> Vec<Vec2D<f64>> {
+        self.intersections().into_iter().map(|s| s.at.at).collect()
+    }
+
+    pub fn tiles(&self) -> &BTreeSet<Tile> {
+        &self.tiles
+    }
+
+    pub fn arrow(&self) -> &Arrow {
+        &self.arrow
+    }
+
+    pub fn graph(&self) -> &EdgesGraph<Vec2D<i8>, Curve> {
+        &self.graph
+    }
+}
+
+struct PathIntersection {
+    at: Intersection,
+    i: usize,
+    j: usize,
+}
+
+#[derive(Clone, Copy)]
+enum Player {
+    Alpha,
+    Beta,
+}
+
+struct Score {
+    alpha: u8,
+    beta: u8,
+}
+
+enum State {
+    Undecided,
+    Invalid,
+    Draw,
+    AlphaWon,
+    BetaWon,
 }

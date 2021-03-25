@@ -3,7 +3,7 @@ use std::{
     fmt::Debug,
 };
 
-use crate::{edges, path::Path};
+use crate::path::Path;
 use crate::{edges::*, Graph};
 
 #[derive(Debug, Clone)]
@@ -253,8 +253,8 @@ where
 
 #[derive(Debug, Clone)]
 pub struct EdgesGraph<N, E> {
-    nodes: Vec<N>,
-    edges: Vec<((usize, usize), E)>,
+    pub nodes: Vec<N>,
+    pub edges: Vec<((usize, usize), E)>,
 }
 
 impl<N, E> EdgesGraph<N, E>
@@ -269,26 +269,33 @@ where
         }
     }
 
-    pub fn edges(&mut self) -> &Vec<((usize, usize), E)> {
+    pub fn with_capacity(nodes: usize, edges: usize) -> Self {
+        Self {
+            nodes: Vec::with_capacity(nodes),
+            edges: Vec::with_capacity(edges),
+        }
+    }
+
+    pub fn edges(&self) -> &Vec<((usize, usize), E)> {
         &self.edges
     }
 
-    pub fn nodes(&mut self) -> &Vec<N> {
+    pub fn nodes(&self) -> &Vec<N> {
         &self.nodes
     }
 
-    pub fn fit_edge(&mut self, node_a: N, node_b: N, edge: E) {
+    pub fn fit_edge(&mut self, start: N, end: N, edge: E) {
         let i = self
             .nodes
             .iter()
-            .position(|node| node == &node_a)
-            .unwrap_or_else(|| self.push_node(node_a));
+            .position(|node| node == &start)
+            .unwrap_or_else(|| self.push_node(start));
 
         let j = self
             .nodes
             .iter()
-            .position(|node| node == &node_b)
-            .unwrap_or_else(|| self.push_node(node_b));
+            .position(|node| node == &end)
+            .unwrap_or_else(|| self.push_node(end));
 
         self.insert_edge(i, j, edge);
     }
