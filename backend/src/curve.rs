@@ -63,18 +63,6 @@ impl Curve {
         self.path.last().unwrap().clone()
     }
 
-    pub fn start(&self) -> Vec2D<i8> {
-        self.start
-    }
-
-    pub fn mid(&self) -> Vec2D<i8> {
-        self.mid
-    }
-
-    pub fn end(&self) -> Vec2D<i8> {
-        self.end
-    }
-
     pub fn path(&self) -> &Vec<Vec2D<f64>> {
         &self.path
     }
@@ -84,8 +72,8 @@ impl Curve {
             return vec![];
         }
 
-        let mut p1: Vec2D<f64> = self.start().into();
-        let mut p2: Vec2D<f64> = other.start().into();
+        let mut p1: Vec2D<f64> = self.first();
+        let mut p2: Vec2D<f64> = other.first();
 
         let mut intersections = Vec::new();
 
@@ -134,6 +122,7 @@ impl Curve {
     } */
 }
 
+#[derive(Clone, Copy)]
 pub(crate) struct Intersection {
     pub(crate) at: Vec2D<f64>,
     pub(crate) i: usize,

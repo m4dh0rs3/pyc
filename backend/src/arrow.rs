@@ -2,37 +2,29 @@ use crate::tile::Tile;
 use math::Vec2D;
 
 pub struct Arrow {
-    pub(crate) position: Vec2D<i8>,
-    pub(crate) rotation: Rotation,
+    pub position: Vec2D<i8>,
+    pub rotation: Rotation,
 }
 
 impl Arrow {
     pub(crate) fn control_points(&self, tile: &Tile) -> (Vec2D<i8>, Vec2D<i8>, Vec2D<i8>) {
-        let horizont_dir: Vec2D<i8> = Vec2D::from_polar(
+        let horizont_dir: Vec2D<f64> = Vec2D::from_polar(
             (self.rotation + (*tile.vertical()).into()).into(),
             *tile.radius() as f64,
-        )
-        .into();
+        );
 
-        let mid = self.position + horizont_dir;
+        let position: Vec2D<f64> = self.position.into();
 
-        let vertical_dir: Vec2D<i8> = Vec2D::from_polar(
+        let mid = position + horizont_dir;
+
+        let vertical_dir: Vec2D<f64> = Vec2D::from_polar(
             (self.rotation + (*tile.horizontal()).into()).into(),
             *tile.radius() as f64,
-        )
-        .into();
+        );
 
         let end = mid + vertical_dir;
 
-        (self.position, mid, end)
-    }
-
-    pub fn position(&self) -> &Vec2D<i8> {
-        &self.position
-    }
-
-    pub fn rotation(&self) -> &Rotation {
-        &self.rotation
+        (self.position.into(), mid.into(), end.into())
     }
 }
 
