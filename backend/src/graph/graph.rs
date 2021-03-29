@@ -1,4 +1,4 @@
-use crate::{edges::*, Graph};
+use super::{edges::*, Graph};
 
 /* #[derive(Debug, Clone)]
 pub struct UnsafeNodeGraph<V>(Vec<(V, Vec<usize>)>);

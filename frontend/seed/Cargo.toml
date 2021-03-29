@@ -13,14 +13,14 @@ wasm-bindgen-test = "0.3.18"
 
 [dependencies]
 seed = "0.8.0"
-backend = { path = "../backend" }
+backend = { path = "../../backend" }
 math = { git = "https://github.com/m4dh0rs3/math.git" }
 syn = "=1.0.65" # Workround for https://github.com/rustwasm/wasm-bindgen/issues/2508, remove as soon as fixed!
 
-[profile.release]
-lto = true
-opt-level = 'z'
-codegen-units = 1
+#[profile.release]
+#lto = true
+#opt-level = 'z'
+#codegen-units = 1
 
-[package.metadata.wasm-pack.profile.release]
-wasm-opt = ['-Os']
+#[package.metadata.wasm-pack.profile.release]
+#wasm-opt = ['-Os']

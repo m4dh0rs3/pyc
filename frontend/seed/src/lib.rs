@@ -20,7 +20,7 @@ impl PYC {
         orders.after_next_render(|_| Msg::Redraw);
 
         Self {
-            board: Board::empty_start(Vec2D::new(5, 5)),
+            board: Board::empty_start(Vec2D::new(5, 5), 11, 12),
             canvas: ElRef::default(),
             size: CANVAS_SIZE,
             scale: CANVAS_SIZE as f64 / 11.0,

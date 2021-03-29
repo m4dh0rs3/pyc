@@ -7,5 +7,4 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-graph = { path = "../graph" }
 math = { git = "https://github.com/m4dh0rs3/math" }

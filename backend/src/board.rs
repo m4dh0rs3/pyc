@@ -1,13 +1,11 @@
 use std::collections::BTreeSet;
 
 use crate::curve::Curve;
-use graph::{EdgesGraph, Graph};
+use crate::EdgesGraph;
 use math::Vec2D;
 
 use crate::arrow::{Arrow, Rotation};
 use crate::tile::Tile;
-
-const CURVE_RESOULUTION: usize = 11;
 
 pub struct Board {
     step: u8,
@@ -15,13 +13,15 @@ pub struct Board {
     pub arrow: Arrow,
     pub graph: EdgesGraph<Vec2D<f64>, Curve>,
     pub tiles: BTreeSet<Tile>,
-    points: [[Option<Player>; 11]; 11],
+    points: Vec<Vec<Option<Player>>>,
+    pub points_num: usize,
+    curve_res: usize,
     score: Score,
     state: State,
 }
 
 impl Board {
-    pub fn empty_start(origin: Vec2D<i8>) -> Self {
+    pub fn empty_start(origin: Vec2D<i8>, points_num: usize, curve_res: usize) -> Self {
         Self {
             step: 0,
             active: Player::Alpha,
@@ -31,7 +31,9 @@ impl Board {
             },
             graph: EdgesGraph::with_capacity(13, 15),
             tiles: BTreeSet::new(),
-            points: [[None; 11]; 11],
+            points: vec![vec![None; points_num]; points_num],
+            points_num,
+            curve_res,
             score: Score { alpha: 0, beta: 0 },
             state: State::Undecided,
         }
@@ -49,7 +51,7 @@ impl Board {
         let (start, mid, end) = self.arrow.bezier_control_points(&tile);
 
         if !self.is_double(start, mid, end) {
-            let curve = Curve::bezier(start.into(), mid.into(), end.into(), CURVE_RESOULUTION);
+            let curve = Curve::bezier(start.into(), mid.into(), end.into(), self.curve_res);
             self.graph.fit_edge(start.into(), end.into(), curve);
         }
 

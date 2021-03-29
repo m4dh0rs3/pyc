@@ -1,4 +1,4 @@
-use crate::path::*;
+use super::path::*;
 
 pub(crate) type Edges = Vec<(usize, usize)>;
 

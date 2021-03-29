@@ -1,5 +1,5 @@
-use crate::graph::*;
-use crate::Graph;
+use super::graph::*;
+use super::Graph;
 
 /* #[test]
 fn path_rotation() {

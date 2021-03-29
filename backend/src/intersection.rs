@@ -1,6 +1,6 @@
+use crate::graph::Graph;
 use crate::Board;
 use crate::Curve;
-use graph::Graph;
 use math::Vec2D;
 
 impl Board {
