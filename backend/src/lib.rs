@@ -1,6 +1,7 @@
 mod arrow;
 mod board;
 mod curve;
+mod intersection;
 mod tile;
 
 pub use board::Board;

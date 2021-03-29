@@ -1,16 +1,17 @@
 use crate::tile::Tile;
 use math::Vec2D;
 
+#[derive(Clone, Copy)]
 pub struct Arrow {
     pub position: Vec2D<i8>,
     pub rotation: Rotation,
 }
 
 impl Arrow {
-    pub(crate) fn control_points(&self, tile: &Tile) -> (Vec2D<i8>, Vec2D<i8>, Vec2D<i8>) {
+    pub(crate) fn bezier_control_points(&self, tile: &Tile) -> (Vec2D<i8>, Vec2D<i8>, Vec2D<i8>) {
         let horizont_dir: Vec2D<f64> = Vec2D::from_polar(
-            (self.rotation + (*tile.vertical()).into()).into(),
-            *tile.radius() as f64,
+            (self.rotation + tile.vertical.into()).into(),
+            tile.radius as f64,
         );
 
         let position: Vec2D<f64> = self.position.into();
@@ -18,11 +19,31 @@ impl Arrow {
         let mid = position + horizont_dir;
 
         let vertical_dir: Vec2D<f64> = Vec2D::from_polar(
-            (self.rotation + (*tile.horizontal()).into()).into(),
-            *tile.radius() as f64,
+            (self.rotation + tile.horizontal.into()).into(),
+            tile.radius as f64,
         );
 
         let end = mid + vertical_dir;
+
+        (self.position.into(), mid.into(), end.into())
+    }
+
+    pub(crate) fn circle_control_points(&self, tile: &Tile) -> (Vec2D<i8>, Vec2D<i8>, Vec2D<i8>) {
+        let vertical_dir: Vec2D<f64> = Vec2D::from_polar(
+            (self.rotation + tile.horizontal.into()).into(),
+            tile.radius as f64,
+        );
+
+        let position: Vec2D<f64> = self.position.into();
+
+        let mid = position + vertical_dir;
+
+        let horizontal_dir: Vec2D<f64> = Vec2D::from_polar(
+            (self.rotation + tile.vertical.into()).into(),
+            tile.radius as f64,
+        );
+
+        let end = mid + horizontal_dir;
 
         (self.position.into(), mid.into(), end.into())
     }

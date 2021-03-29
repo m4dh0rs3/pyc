@@ -2,27 +2,13 @@ use crate::arrow::Rotation;
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Tile {
-    horizontal: Horizontal,
-    vertical: Vertical,
-    radius: u8,
-}
-
-impl Tile {
-    pub(crate) fn vertical(&self) -> &Vertical {
-        &self.vertical
-    }
-
-    pub(crate) fn horizontal(&self) -> &Horizontal {
-        &self.horizontal
-    }
-
-    pub(crate) fn radius(&self) -> &u8 {
-        &self.radius
-    }
+    pub horizontal: Horizontal,
+    pub vertical: Vertical,
+    pub radius: u8,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub(crate) enum Horizontal {
+pub enum Horizontal {
     Left,
     Right,
 }
@@ -37,7 +23,7 @@ impl From<Horizontal> for Rotation {
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub(crate) enum Vertical {
+pub enum Vertical {
     Up,
     Down,
 }

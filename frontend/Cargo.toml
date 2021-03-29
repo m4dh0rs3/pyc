@@ -15,6 +15,7 @@ wasm-bindgen-test = "0.3.18"
 seed = "0.8.0"
 backend = { path = "../backend" }
 math = { git = "https://github.com/m4dh0rs3/math.git" }
+syn = "=1.0.65" # Workround for https://github.com/rustwasm/wasm-bindgen/issues/2508, remove as soon as fixed!
 
 [profile.release]
 lto = true

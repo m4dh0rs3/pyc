@@ -1,12 +1,11 @@
-//use crate::arrow::Rotation
 use math::{remap, Vec2D};
 
 #[derive(Debug, Clone)]
 pub struct Curve {
-    pub(crate) path: Vec<Vec2D<f64>>,
-    pub(crate) start: Vec2D<i8>,
-    pub(crate) mid: Vec2D<i8>,
-    pub(crate) end: Vec2D<i8>,
+    pub path: Vec<Vec2D<f64>>,
+    pub start: Vec2D<i8>,
+    pub mid: Vec2D<i8>,
+    pub end: Vec2D<i8>,
 }
 
 impl Curve {
@@ -22,7 +21,7 @@ impl Curve {
             ));
         }
 
-        Curve {
+        Self {
             path,
             start,
             mid,
@@ -30,30 +29,28 @@ impl Curve {
         }
     }
 
-    /* pub fn circle(res: usize, radius: u8, mid: Vec2D<i8>, start: Rotation, end: Rotation) -> Self {
-        let mut path: Vec<Vec2D<f64>> = Vec::with_capacity(res + 1);
-
+    pub fn circle(start: Vec2D<i8>, mid: Vec2D<i8>, end: Vec2D<i8>, res: usize) -> Self {
+        let start: Vec2D<f64> = start.into();
         let mid: Vec2D<f64> = mid.into();
-        let start = start.into();
-        let end = end.into();
-        let radius = radius.into();
+        let end: Vec2D<f64> = end.into();
+
+        let start_angle = (start.y - mid.y).atan2(start.x - mid.x);
+        let end_angle = (end.y - mid.y).atan2(end.x - mid.x);
+        let radius = ((start.x - mid.x).powi(2) + (start.y - mid.y).powi(2)).sqrt();
+        let mut path = Vec::with_capacity(res + 1);
 
         for n in 0..=res {
-            path.push(
-                mid + Vec2D::from_polar(remap(n as f64, 0.0, res as f64, start, end), radius),
-            );
+            let angle = remap(n as f64, 0.0, res as f64, start_angle, end_angle);
+            path.push(mid + Vec2D::from_polar(angle, radius));
         }
 
-        let start = path.first().unwrap().clone().into();
-        let end = path.last().unwrap().clone().into();
-
-        Curve {
-            path,
-            start,
+        Self {
+            start: start.into(),
             mid: mid.into(),
-            end,
+            end: end.into(),
+            path,
         }
-    } */
+    }
 
     pub fn first(&self) -> Vec2D<f64> {
         self.path.first().unwrap().clone()
@@ -62,71 +59,6 @@ impl Curve {
     pub fn last(&self) -> Vec2D<f64> {
         self.path.last().unwrap().clone()
     }
-
-    pub fn path(&self) -> &Vec<Vec2D<f64>> {
-        &self.path
-    }
-
-    pub(crate) fn intersections(&self, other: &Self) -> Vec<Intersection> {
-        if self == other {
-            return vec![];
-        }
-
-        let mut p1: Vec2D<f64> = self.first();
-        let mut p2: Vec2D<f64> = other.first();
-
-        let mut intersections = Vec::new();
-
-        for (i, o1) in (&self.path).iter().enumerate() {
-            for (j, o2) in (&other.path).iter().enumerate() {
-                if i > 0 && j > 0 && i + 1 < self.path.len() && j + 1 < other.path.len() {
-                    if let Some(intersection) = Vec2D::intersect(p1, *o1, p2, *o2) {
-                        intersections.push(Intersection {
-                            at: intersection,
-                            i,
-                            j,
-                        });
-                    }
-                }
-
-                p2 = *o2;
-            }
-
-            p1 = *o1;
-        }
-
-        intersections
-    }
-
-    /* pub fn first_intersection(&self, rhs: &Self) -> Option<Intersection> {
-        let mut p1: Vec2D<f64> = self.first();
-        let mut p2: Vec2D<f64> = rhs.first();
-
-        for (i, o1) in self.path.iter().skip(1).enumerate() {
-            for (j, o2) in rhs.path.iter().skip(1).enumerate() {
-                if let Some(intersection) = Vec2D::intersect(p1, *o1, p2, *o2) {
-                    return Some(Intersection {
-                        at: intersection,
-                        i,
-                        j,
-                    });
-                }
-
-                p2 = *o2;
-            }
-
-            p1 = *o1;
-        }
-
-        None
-    } */
-}
-
-#[derive(Clone, Copy)]
-pub(crate) struct Intersection {
-    pub(crate) at: Vec2D<f64>,
-    pub(crate) i: usize,
-    pub(crate) j: usize,
 }
 
 impl std::cmp::PartialEq for Curve {

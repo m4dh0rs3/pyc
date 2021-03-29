@@ -53,22 +53,27 @@ impl PYC {
                     St::Border => "1px solid black",
                 ) */
             ],
-            tile_pad(self.board.tiles(), self.size),
-            format!("#Tiles: {}", self.board.graph().edges().len()),
-            format!("#Nodes: {}", self.board.graph().nodes().len()),
+            tile_pad(&self.board.tiles, self.size),
+            format!("#Tiles: {}", self.board.graph.edges.len()),
+            format!("#Nodes: {}", self.board.graph.nodes.len()),
         ]
     }
 
     fn draw(&mut self) {
-        let canvas = self.canvas.get().expect("Could not get canvas");
-        let ctx = seed::canvas_context_2d(&canvas);
+        let ctx = self.get_ctx();
+
+        ctx.set_line_join("round");
+        ctx.set_line_cap("round");
 
         self.clear(&ctx);
         self.draw_points(&ctx);
         self.draw_nodes(&ctx);
         self.draw_debug_path(&ctx);
-        //self.draw_intersections(&ctx);
         self.draw_arrow(&ctx);
+    }
+
+    fn get_ctx(&self) -> web_sys::CanvasRenderingContext2d {
+        seed::canvas_context_2d(&self.canvas.get().expect("Could not get canvas!"))
     }
 
     fn clear(&self, ctx: &web_sys::CanvasRenderingContext2d) {
@@ -76,6 +81,8 @@ impl PYC {
     }
 
     fn draw_points(&self, ctx: &web_sys::CanvasRenderingContext2d) {
+        ctx.set_stroke_style(&JsValue::from_str("black"));
+
         for i in 0_u8..=10 {
             for j in 0_u8..=10 {
                 ctx.begin_path();
@@ -83,7 +90,7 @@ impl PYC {
                 ctx.arc(
                     self.offset + self.scale * i as f64,
                     self.offset + self.scale * j as f64,
-                    2.,
+                    self.scale / 16.0,
                     0.,
                     std::f64::consts::TAU,
                 )
@@ -95,12 +102,13 @@ impl PYC {
     }
 
     fn draw_path(&self, ctx: &web_sys::CanvasRenderingContext2d) {
+        ctx.set_line_width(self.scale / 16.0);
         ctx.begin_path();
 
-        for (_, edge) in self.board.graph().edges() {
+        for (_, edge) in &self.board.graph.edges {
             let mut o = edge.first() * self.scale + self.offset;
 
-            for p in edge.path().iter().skip(1) {
+            for p in edge.path.iter().skip(1) {
                 let p = *p * self.scale + self.offset;
 
                 ctx.move_to(o.x, o.y);
@@ -110,37 +118,40 @@ impl PYC {
             }
         }
 
+        ctx.set_stroke_style(&JsValue::from_str("black"));
         ctx.stroke();
     }
 
     fn draw_debug_path(&self, ctx: &web_sys::CanvasRenderingContext2d) {
-        for (i, (_, edge)) in self.board.graph().edges().iter().enumerate() {
-            ctx.begin_path();
+        ctx.set_line_width(self.scale / 16.0);
 
+        for (i, (_, edge)) in self.board.graph.edges.iter().enumerate() {
             let mut o = edge.first() * self.scale + self.offset;
 
-            for p in edge.path().iter().skip(1) {
+            for (j, p) in edge.path.iter().skip(1).enumerate() {
                 let p = *p * self.scale + self.offset;
+
+                ctx.begin_path();
 
                 ctx.move_to(o.x, o.y);
                 ctx.line_to(p.x, p.y);
 
+                ctx.set_stroke_style(&JsValue::from_str(&format!(
+                    "hsl({}, {}%, {}%)",
+                    i * 45 + j * 2,
+                    100,
+                    50,
+                )));
+
+                ctx.stroke();
+
                 o = p;
             }
-
-            ctx.set_stroke_style(&JsValue::from_str(&format!(
-                "hsl({}, {}%, {}%)",
-                i * 45,
-                100,
-                50,
-            )));
-
-            ctx.stroke();
         }
     }
 
     fn draw_arrow(&self, ctx: &web_sys::CanvasRenderingContext2d) {
-        let arrow = self.board.arrow();
+        let arrow = self.board.arrow;
 
         let mut position: Vec2D<f64> = arrow.position.into();
         position *= self.scale;
@@ -150,6 +161,9 @@ impl PYC {
 
         ctx.begin_path();
 
+        ctx.set_line_width(self.scale / 16.0);
+        ctx.set_stroke_style(&JsValue::from_str("black"));
+
         ctx.move_to(position.x, position.y);
         ctx.line_to(direction.x, direction.y);
 
@@ -157,30 +171,16 @@ impl PYC {
     }
 
     fn draw_nodes(&self, ctx: &web_sys::CanvasRenderingContext2d) {
-        for node in self.board.graph().nodes() {
+        ctx.set_stroke_style(&JsValue::from_str("red"));
+        ctx.set_line_width(self.scale / 36.0);
+
+        for node in &self.board.graph.nodes {
             ctx.begin_path();
 
             ctx.arc(
                 self.offset + self.scale * node.x as f64,
                 self.offset + self.scale * node.y as f64,
-                4.,
-                0.,
-                std::f64::consts::TAU,
-            )
-            .unwrap();
-
-            ctx.stroke();
-        }
-    }
-
-    fn draw_intersections(&self, ctx: &web_sys::CanvasRenderingContext2d) {
-        for intersection in self.board.intersection_points() {
-            ctx.begin_path();
-
-            ctx.arc(
-                self.offset + self.scale * intersection.x as f64,
-                self.offset + self.scale * intersection.y as f64,
-                4.,
+                self.scale / 7.0,
                 0.,
                 std::f64::consts::TAU,
             )

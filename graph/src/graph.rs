@@ -1,12 +1,6 @@
-use std::{
-    collections::{BTreeMap, BTreeSet},
-    fmt::Debug,
-};
-
-use crate::path::Path;
 use crate::{edges::*, Graph};
 
-#[derive(Debug, Clone)]
+/* #[derive(Debug, Clone)]
 pub struct UnsafeNodeGraph<V>(Vec<(V, Vec<usize>)>);
 
 impl<V> UnsafeNodeGraph<V> {
@@ -174,9 +168,9 @@ where
     fn cycles(&self) -> Vec<Path> {
         cycles(&self.edges())
     }
-}
+} */
 
-#[derive(Debug, Clone)]
+/* #[derive(Debug, Clone)]
 pub struct EdgeGraph<N, E> {
     nodes: BTreeMap<usize, N>,
     edges: BTreeMap<(usize, usize), E>,
@@ -249,7 +243,7 @@ where
     fn cycles(&self) -> Vec<Path> {
         cycles(&self.edge_list())
     }
-}
+} */
 
 #[derive(Debug, Clone)]
 pub struct EdgesGraph<N, E> {
@@ -276,14 +270,6 @@ where
         }
     }
 
-    pub fn edges(&self) -> &Vec<((usize, usize), E)> {
-        &self.edges
-    }
-
-    pub fn nodes(&self) -> &Vec<N> {
-        &self.nodes
-    }
-
     pub fn fit_edge(&mut self, start: N, end: N, edge: E) {
         let i = self
             .nodes
@@ -298,6 +284,12 @@ where
             .unwrap_or_else(|| self.push_node(end));
 
         self.insert_edge(i, j, edge);
+    }
+
+    pub fn insert_edge_at(&mut self, at: usize, i: usize, j: usize, edge: E) -> Option<E> {
+        self.edges.insert(at, ((i, j), edge));
+
+        None
     }
 }
 
