@@ -1,0 +1,11 @@
+[package]
+name = "pyc-backend"
+description = "Game logic of Polycentrics, including the board and virtual players"
+readme = "../README.md"
+version = "0.2.0"
+license = "GPL-3.0-only"
+authors = ["m4dh0rs3 <schoeps.benedikt@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+math = { git = "https://github.com/m4d0rs3/math.git" }

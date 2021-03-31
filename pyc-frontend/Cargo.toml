@@ -1,0 +1,10 @@
+[package]
+name = "pyc-frontend"
+description = "Web-frontend for Polycentrics using Yew"
+readme = "../README.md"
+version = "0.2.0"
+license = "GPL-3.0-only"
+authors = ["m4dh0rs3 <schoeps.benedikt@gmail.com>"]
+edition = "2018"
+
+[dependencies]
