@@ -1,7 +1,7 @@
 [workspace]
 members = [
-    "pyc-frontend",
-    "pyc-backend",
+    "frontend",
+    "backend",
 ]
 
 # Yew optimizations for size (https://yew.rs/docs/en/advanced-topics/optimizations)
