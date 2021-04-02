@@ -11,8 +11,6 @@ outside the board.
 
 ## Technical
 
-## People
+## Contributors
 
-- Author Angelo Alessandro Mazzotti (game registered 01.2018)
-
-This is a private clone of Polycentrics, a game by Angelo Mazotti. The original was implemented by `OrionLab` and published by [GAMMAGRAPHICS SRLS](https://www.gammagraphics.eu/)
+This is a private clone of [Polycentrics](https://www.polycentrics.com/), a game by `Angelo Alessandro Mazzotti` (game registered 01.2018). The original was implemented by `OrionLab` and published by [GAMMAGRAPHICS SRLS](https://www.gammagraphics.eu/)
