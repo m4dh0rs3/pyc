@@ -8,4 +8,4 @@ authors = ["m4dh0rs3 <schoeps.benedikt@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-math = { git = "https://github.com/m4dh0rs3/math.git" }
+math = { git = "https://github.com/m4dh0rs3/math-rs.git" }

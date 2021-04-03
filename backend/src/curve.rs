@@ -1,18 +1,20 @@
-use crate::angle::Angle;
-use math::Vec2D;
+use math::{angle::Angle, vec2d::Vec2D};
+
+use crate::arrow::Arrow;
 
 /// [`Tile`] with position.
-#[derive(Debug)]
-pub(crate) struct Curve {
-    mid: Vec2D<i8>,
-    start: Angle,
-    end: Angle,
-    turn: Turn,
+#[derive(Clone)]
+pub struct Curve {
+    pub(crate) mid: Vec2D<i8>,
+    pub(crate) radius: u8,
+    pub(crate) start: Angle,
+    pub(crate) end: Angle,
+    pub(crate) turn: Turn,
 }
 
 /// Turn-direction.
-#[derive(Debug)]
-pub(crate) enum Turn {
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Turn {
     // Clockwise shorthand
     Positive,
     // Counterclockwise shorthand
@@ -21,9 +23,10 @@ pub(crate) enum Turn {
 
 impl Curve {
     /// Returns new [`Curve`].
-    pub(crate) fn new(mid: Vec2D<i8>, start: Angle, end: Angle, turn: Turn) -> Self {
+    pub(crate) fn new(mid: Vec2D<i8>, radius: u8, start: Angle, end: Angle, turn: Turn) -> Self {
         Self {
             mid,
+            radius,
             start,
             end,
             turn,
@@ -50,5 +53,68 @@ impl Curve {
                 }
             }
         }
+    }
+
+    /// Generates the 12 curve tiles.
+    #[rustfmt::skip]
+    pub fn convex_4x3() -> Vec<Self> {
+        use std::f64::consts::{FRAC_PI_2, PI};
+
+        vec![
+            Curve::new(Vec2D::new(0, 0), 1, (-FRAC_PI_2).into(), (-PI).into(), Turn::Negative),
+            Curve::new(Vec2D::new(0, 0), 2, (-FRAC_PI_2).into(), (-PI).into(), Turn::Negative),
+            Curve::new(Vec2D::new(0, 0), 3, (-FRAC_PI_2).into(), (-PI).into(), Turn::Negative),
+
+            Curve::new(Vec2D::new(0, 0), 1, (-FRAC_PI_2).into(), 0.0.into(), Turn::Positive),
+            Curve::new(Vec2D::new(0, 0), 2, (-FRAC_PI_2).into(), 0.0.into(), Turn::Positive),
+            Curve::new(Vec2D::new(0, 0), 3, (-FRAC_PI_2).into(), 0.0.into(), Turn::Positive),
+
+            Curve::new(Vec2D::new(0, 0), 1, (FRAC_PI_2).into(), (-PI).into(), Turn::Positive),
+            Curve::new(Vec2D::new(0, 0), 2, (FRAC_PI_2).into(), (-PI).into(), Turn::Positive),
+            Curve::new(Vec2D::new(0, 0), 3, (FRAC_PI_2).into(), (-PI).into(), Turn::Positive),
+
+            Curve::new(Vec2D::new(0, 0), 1, (FRAC_PI_2).into(), 0.0.into(), Turn::Negative),
+            Curve::new(Vec2D::new(0, 0), 2, (FRAC_PI_2).into(), 0.0.into(), Turn::Negative),
+            Curve::new(Vec2D::new(0, 0), 3, (FRAC_PI_2).into(), 0.0.into(), Turn::Negative),
+        ]
+    }
+
+    /// Returns the midpoint of [`Curve`].
+    pub fn get_mid(&self) -> Vec2D<i8> {
+        self.mid
+    }
+
+    /// Returns the start angle of [`Curve`].
+    pub fn get_start(&self) -> Angle {
+        self.start
+    }
+
+    /// Returns the end angle of [`Curve`].
+    pub fn get_end(&self) -> Angle {
+        self.end
+    }
+
+    /// Returns the radius of [`Curve`].
+    pub fn get_radius(&self) -> u8 {
+        self.radius
+    }
+
+    /// Returns the turn direction of [`Curve`].
+    pub fn get_turn(&self) -> Turn {
+        self.turn
+    }
+}
+
+use std::fmt;
+
+impl fmt::Debug for Curve {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{} {} {}",
+            if *self.end < 0.0 { "Up" } else { "Down" },
+            if *self.start < 0.0 { "Left" } else { "Right" },
+            self.radius,
+        )
     }
 }

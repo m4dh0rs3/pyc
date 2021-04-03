@@ -1,9 +1,8 @@
 use crate::{
-    angle::Angle,
     curve::{Curve, Turn},
     graph::Graph,
 };
-use math::Vec2D;
+use math::vec2d::Vec2D;
 
 #[test]
 fn graph_cycles() {
@@ -43,22 +42,36 @@ fn graph_cycles() {
 #[test]
 fn contains_angle() {
     assert_eq!(
-        Curve::new(Vec2D::new(0, 0), 0.0.into(), 3.0.into(), Turn::Positive).contains(2.0.into()),
-        true
-    );
-    assert_eq!(
-        Curve::new(Vec2D::new(0, 0), (-2.0).into(), 3.0.into(), Turn::Positive)
+        Curve::new(Vec2D::new(0, 0), 1, 0.0.into(), 3.0.into(), Turn::Positive)
             .contains(2.0.into()),
         true
     );
     assert_eq!(
-        Curve::new(Vec2D::new(0, 0), (-2.0).into(), 1.0.into(), Turn::Positive)
-            .contains(2.0.into()),
+        Curve::new(
+            Vec2D::new(0, 0),
+            1,
+            (-2.0).into(),
+            3.0.into(),
+            Turn::Positive
+        )
+        .contains(2.0.into()),
+        true
+    );
+    assert_eq!(
+        Curve::new(
+            Vec2D::new(0, 0),
+            1,
+            (-2.0).into(),
+            1.0.into(),
+            Turn::Positive
+        )
+        .contains(2.0.into()),
         false
     );
     assert_eq!(
         Curve::new(
             Vec2D::new(0, 0),
+            1,
             (-3.0).into(),
             (-2.0).into(),
             Turn::Positive
@@ -67,37 +80,64 @@ fn contains_angle() {
         false
     );
     assert_eq!(
-        Curve::new(Vec2D::new(0, 0), 2.0.into(), 3.0.into(), Turn::Positive).contains(1.0.into()),
-        false
-    );
-    assert_eq!(
-        Curve::new(Vec2D::new(0, 0), (-2.0).into(), 1.0.into(), Turn::Positive)
+        Curve::new(Vec2D::new(0, 0), 1, 2.0.into(), 3.0.into(), Turn::Positive)
             .contains(1.0.into()),
-        true
-    );
-    assert_eq!(
-        Curve::new(Vec2D::new(0, 0), (-2.0).into(), 1.0.into(), Turn::Positive)
-            .contains((-2.0).into()),
-        true
-    );
-
-    assert_eq!(
-        Curve::new(Vec2D::new(0, 0), 0.0.into(), 3.0.into(), Turn::Negative).contains(2.0.into()),
         false
     );
     assert_eq!(
-        Curve::new(Vec2D::new(0, 0), (-2.0).into(), 3.0.into(), Turn::Negative)
-            .contains(2.0.into()),
-        false
-    );
-    assert_eq!(
-        Curve::new(Vec2D::new(0, 0), (-2.0).into(), 1.0.into(), Turn::Negative)
-            .contains(2.0.into()),
+        Curve::new(
+            Vec2D::new(0, 0),
+            1,
+            (-2.0).into(),
+            1.0.into(),
+            Turn::Positive
+        )
+        .contains(1.0.into()),
         true
     );
     assert_eq!(
         Curve::new(
             Vec2D::new(0, 0),
+            1,
+            (-2.0).into(),
+            1.0.into(),
+            Turn::Positive
+        )
+        .contains((-2.0).into()),
+        true
+    );
+
+    assert_eq!(
+        Curve::new(Vec2D::new(0, 0), 1, 0.0.into(), 3.0.into(), Turn::Negative)
+            .contains(2.0.into()),
+        false
+    );
+    assert_eq!(
+        Curve::new(
+            Vec2D::new(0, 0),
+            1,
+            (-2.0).into(),
+            3.0.into(),
+            Turn::Negative
+        )
+        .contains(2.0.into()),
+        false
+    );
+    assert_eq!(
+        Curve::new(
+            Vec2D::new(0, 0),
+            1,
+            (-2.0).into(),
+            1.0.into(),
+            Turn::Negative
+        )
+        .contains(2.0.into()),
+        true
+    );
+    assert_eq!(
+        Curve::new(
+            Vec2D::new(0, 0),
+            1,
             (-3.0).into(),
             (-2.0).into(),
             Turn::Negative
@@ -106,17 +146,42 @@ fn contains_angle() {
         true
     );
     assert_eq!(
-        Curve::new(Vec2D::new(0, 0), 2.0.into(), 3.0.into(), Turn::Negative).contains(1.0.into()),
-        true
-    );
-    assert_eq!(
-        Curve::new(Vec2D::new(0, 0), (-2.0).into(), 1.0.into(), Turn::Negative)
+        Curve::new(Vec2D::new(0, 0), 1, 2.0.into(), 3.0.into(), Turn::Negative)
             .contains(1.0.into()),
         true
     );
     assert_eq!(
-        Curve::new(Vec2D::new(0, 0), (-2.0).into(), 1.0.into(), Turn::Negative)
-            .contains((-2.0).into()),
+        Curve::new(
+            Vec2D::new(0, 0),
+            1,
+            (-2.0).into(),
+            1.0.into(),
+            Turn::Negative
+        )
+        .contains(1.0.into()),
         true
+    );
+    assert_eq!(
+        Curve::new(
+            Vec2D::new(0, 0),
+            1,
+            (-2.0).into(),
+            1.0.into(),
+            Turn::Negative
+        )
+        .contains((-2.0).into()),
+        true
+    );
+
+    assert_eq!(
+        Curve::new(Vec2D::new(0, 0), 1, 0.0.into(), 0.0.into(), Turn::Negative)
+            .contains((2.0).into()),
+        false
+    );
+
+    assert_eq!(
+        Curve::new(Vec2D::new(0, 0), 1, 0.0.into(), 0.0.into(), Turn::Positive)
+            .contains((2.0).into()),
+        false
     );
 }

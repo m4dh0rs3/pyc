@@ -5,12 +5,13 @@
 /// Both can hold values of type [`N`] and [`E`].
 /// There can't be multiple nodes of the same value,
 /// but there may be equal edges.
+#[derive(Clone)]
 pub(crate) struct Graph<N, E> {
     // This is not an BTreeSet, because f64 does not implement Eq.
     // It should be changed for performance improvements.
-    nodes: Vec<N>,
+    pub(crate) nodes: Vec<N>,
     // This is not BTreeSet, because order should be preserved.
-    edges: Vec<((usize, usize), E)>,
+    pub(crate) edges: Vec<((usize, usize), E)>,
 }
 
 impl<N, E> Graph<N, E> {

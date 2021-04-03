@@ -7,4 +7,13 @@ license = "GPL-3.0-only"
 authors = ["m4dh0rs3 <schoeps.benedikt@gmail.com>"]
 edition = "2018"
 
+[lib]
+crate-type = ["cdylib", "rlib"]
+
 [dependencies]
+backend = { path = "../backend", package = "pyc-backend" }
+math = { git = "https://github.com/m4dh0rs3/math-rs.git" }
+
+yew = "0.17"
+wasm-bindgen = "0.2"
+web-sys = { version = "0.3", features = ["HtmlCanvasElement", "CanvasRenderingContext2d"] }
