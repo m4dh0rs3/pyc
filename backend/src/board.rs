@@ -8,6 +8,7 @@ pub struct Board {
     active: Player,
     step: u8,
     arrow: Arrow,
+    // reduced precision for node fitting
     graph: Graph<Vec2D<f32>, Curve>,
     // remainig possible tiles
     // this is not a BTreeSet because wave collapse
@@ -68,18 +69,20 @@ impl Default for Board {
 impl Board {
     /// Set a tile.
     pub fn step(&mut self, tile: usize) {
+        use std::f64::consts::{FRAC_PI_2, PI};
+
         let mut tile = self.tiles.remove(tile);
 
-        tile.start = (*tile.start + *self.arrow.angle).into();
-        tile.end = (*tile.end + *self.arrow.angle).into();
+        tile.start = tile.start + self.arrow.angle + PI.into();
+        tile.end = tile.end + self.arrow.angle + PI.into();
 
         tile.mid = self.arrow.position
-            + Into::<Vec2D<i8>>::into(Vec2D::from_polar((-*tile.start).into(), tile.radius as f64));
+            - Into::<Vec2D<i8>>::into(Vec2D::from_polar(tile.start, tile.radius as f64));
 
         let end =
             Into::<Vec2D<f64>>::into(tile.mid) + Vec2D::from_polar(tile.end, tile.radius as f64);
 
-        self.arrow.angle = (*self.arrow.angle - *tile.start).into();
+        self.arrow.angle = tile.start - PI.into();
 
         self.graph
             .fit_edge(self.arrow.position.into(), end.into(), tile);

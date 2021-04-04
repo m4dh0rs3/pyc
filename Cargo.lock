@@ -292,7 +292,7 @@ dependencies = [
 [[package]]
 name = "math"
 version = "0.1.0"
-source = "git+https://github.com/m4dh0rs3/math-rs.git#b468c3234b71ac89cee5d3b6aed8f0213a0c3e82"
+source = "git+https://github.com/m4dh0rs3/math-rs.git#20fb4f9a2a3dce7d593ffeb249200423e7ec57e4"
 
 [[package]]
 name = "memchr"

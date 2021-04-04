@@ -182,6 +182,7 @@ impl BoardCanvas {
             ctx.begin_path();
 
             let mid = edge.get_mid();
+
             let (start, end) = match edge.get_turn() {
                 Turn::Positive => (edge.get_start(), edge.get_end()),
                 Turn::Negative => (edge.get_end(), edge.get_start()),
@@ -193,7 +194,8 @@ impl BoardCanvas {
                 edge.get_radius() as f64 * self.scale,
                 *start,
                 *end,
-            );
+            )
+            .unwrap();
 
             ctx.stroke();
         }
