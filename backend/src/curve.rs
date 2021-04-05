@@ -61,21 +61,21 @@ impl Curve {
         use std::f64::consts::{FRAC_PI_2, PI};
 
         vec![
-            Curve::new(Vec2D::new(0, 0), 1, (-FRAC_PI_2).into(), (-PI).into(), Turn::Negative),
-            Curve::new(Vec2D::new(0, 0), 2, (-FRAC_PI_2).into(), (-PI).into(), Turn::Negative),
-            Curve::new(Vec2D::new(0, 0), 3, (-FRAC_PI_2).into(), (-PI).into(), Turn::Negative),
+            Curve::new(Vec2D::zero(), 1, Angle::right(), Angle::up(), Turn::Negative),
+            Curve::new(Vec2D::zero(), 2, Angle::right(), Angle::up(), Turn::Negative),
+            Curve::new(Vec2D::zero(), 3, Angle::right(), Angle::up(), Turn::Negative),
 
-            Curve::new(Vec2D::new(0, 0), 1, (-FRAC_PI_2).into(), 0.0.into(), Turn::Positive),
-            Curve::new(Vec2D::new(0, 0), 2, (-FRAC_PI_2).into(), 0.0.into(), Turn::Positive),
-            Curve::new(Vec2D::new(0, 0), 3, (-FRAC_PI_2).into(), 0.0.into(), Turn::Positive),
+            Curve::new(Vec2D::zero(), 1, Angle::right(), Angle::down(), Turn::Positive),
+            Curve::new(Vec2D::zero(), 2, Angle::right(), Angle::down(), Turn::Positive),
+            Curve::new(Vec2D::zero(), 3, Angle::right(), Angle::down(), Turn::Positive),
 
-            Curve::new(Vec2D::new(0, 0), 1, (FRAC_PI_2).into(), (-PI).into(), Turn::Positive),
-            Curve::new(Vec2D::new(0, 0), 2, (FRAC_PI_2).into(), (-PI).into(), Turn::Positive),
-            Curve::new(Vec2D::new(0, 0), 3, (FRAC_PI_2).into(), (-PI).into(), Turn::Positive),
+            Curve::new(Vec2D::zero(), 1,  Angle::left(), Angle::up(), Turn::Positive),
+            Curve::new(Vec2D::zero(), 2,  Angle::left(), Angle::up(), Turn::Positive),
+            Curve::new(Vec2D::zero(), 3,  Angle::left(), Angle::up(), Turn::Positive),
 
-            Curve::new(Vec2D::new(0, 0), 1, (FRAC_PI_2).into(), 0.0.into(), Turn::Negative),
-            Curve::new(Vec2D::new(0, 0), 2, (FRAC_PI_2).into(), 0.0.into(), Turn::Negative),
-            Curve::new(Vec2D::new(0, 0), 3, (FRAC_PI_2).into(), 0.0.into(), Turn::Negative),
+            Curve::new(Vec2D::zero(), 1,  Angle::left(), Angle::down(), Turn::Negative),
+            Curve::new(Vec2D::zero(), 2,  Angle::left(), Angle::down(), Turn::Negative),
+            Curve::new(Vec2D::zero(), 3,  Angle::left(), Angle::down(), Turn::Negative),
         ]
     }
 
