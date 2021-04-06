@@ -7,6 +7,7 @@ use math::prelude::*;
 
 #[wasm_bindgen(start)]
 pub fn run_app() {
+    std::panic::set_hook(Box::new(console_error_panic_hook::hook));
     App::<Polycentrics>::new().mount_to_body();
 }
 
@@ -97,6 +98,7 @@ impl Component for Polycentrics {
     fn view(&self) -> Html {
         html! {
             <div class="polycentrics">
+                // { self.tiles_nodes_view() }
                 { self.board_canvas_view() }
                 { self.tile_pad_view() }
             </div>
@@ -105,7 +107,17 @@ impl Component for Polycentrics {
 }
 
 impl Polycentrics {
-    /// View of the tile pad
+    /// Debug tiles and nodes view.
+    fn tiles_nodes_view(&self) -> Html {
+        html! {
+            <div>
+                { format!("Tiles: {}", self.board.get_edges().len()) }
+                { format!("Nodes: {}", self.board.get_nodes().len()) }
+            </div>
+        }
+    }
+
+    /// View of the tile pad.
     fn tile_pad_view(&self) -> Html {
         html! {
             <div class="tile-pad">

@@ -1,6 +1,8 @@
 //! Graph structure
 //! Based on: [Optimal Listing of Cycles and st-Vec<usize>s in Undirected Graphs](https://arxiv.org/pdf/1205.2766.pdf)
 
+use math::prelude::Vec2D;
+
 /// Graph of nodes, which may be connected by edges.
 /// Both can hold values of type [`N`] and [`E`].
 /// There can't be multiple nodes of the same value,
@@ -80,6 +82,14 @@ impl<N, E> Graph<N, E> {
     pub(crate) fn remove_edge(&mut self, i: usize, j: usize) {
         self.edges.retain(|((k, l), _)| !(&i == k && &j == l))
     }
+
+    /* /// Returns references of nodes from connected by edge.
+    pub(crate) fn get_nodes_from_edge(&self, i: usize) -> (&N, &N) {
+        (
+            &self.nodes[self.edges[i].0 .0],
+            &self.nodes[self.edges[i].0 .1],
+        )
+    } */
 }
 
 impl<N, E> Graph<N, E>
@@ -101,6 +111,29 @@ where
     pub(crate) fn fit_edge(&mut self, start: N, end: N, edge: E) {
         let i = self.push_node(start);
         let j = self.push_node(end);
+
+        self.insert_edge(i, j, edge);
+    }
+}
+
+const CLIP: f64 = 0.1;
+
+impl<E> Graph<Vec2D<f64>, E> {
+    /// Insert node or return key to already existing about equal.
+    pub(crate) fn clip_node(&mut self, node: Vec2D<f64>) -> usize {
+        match self.nodes.iter().position(|other| node.dist(*other) < CLIP) {
+            Some(i) => i,
+            None => {
+                self.nodes.push(node);
+                self.nodes.len() - 1
+            }
+        }
+    }
+
+    /// Reuse nodes of the about equal value and connect to the old one instead.
+    pub(crate) fn clip_edge(&mut self, start: Vec2D<f64>, end: Vec2D<f64>, edge: E) {
+        let i = self.clip_node(start);
+        let j = self.clip_node(end);
 
         self.insert_edge(i, j, edge);
     }

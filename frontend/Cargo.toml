@@ -17,3 +17,4 @@ math = { git = "https://github.com/m4dh0rs3/math-rs.git" }
 yew = "0.17"
 wasm-bindgen = "0.2"
 web-sys = { version = "0.3", features = ["HtmlCanvasElement", "CanvasRenderingContext2d"] }
+console_error_panic_hook = "0.1"

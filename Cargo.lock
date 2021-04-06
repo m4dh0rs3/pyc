@@ -292,7 +292,7 @@ dependencies = [
 [[package]]
 name = "math"
 version = "0.1.0"
-source = "git+https://github.com/m4dh0rs3/math-rs.git#94edbab1c4c877ec655bdbbeb5e8516b8e32fbe8"
+source = "git+https://github.com/m4dh0rs3/math-rs.git#5ae4d40b5e029d190a47f7cd6b82b790374a14ad"
 
 [[package]]
 name = "memchr"
@@ -344,6 +344,7 @@ dependencies = [
 name = "pyc-frontend"
 version = "0.2.0"
 dependencies = [
+ "console_error_panic_hook",
  "math",
  "pyc-backend",
  "wasm-bindgen",
