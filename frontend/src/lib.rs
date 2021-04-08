@@ -98,7 +98,7 @@ impl Component for Polycentrics {
     fn view(&self) -> Html {
         html! {
             <div class="polycentrics">
-                // { self.tiles_nodes_view() }
+                { self.tiles_nodes_view() }
                 { self.board_canvas_view() }
                 { self.tile_pad_view() }
             </div>
@@ -113,6 +113,7 @@ impl Polycentrics {
             <div>
                 { format!("Tiles: {}", self.board.get_edges().len()) }
                 { format!("Nodes: {}", self.board.get_nodes().len()) }
+                { format!("Polys: {}", self.board.get_polys().len()) }
             </div>
         }
     }
@@ -147,6 +148,7 @@ impl Polycentrics {
         self.clear(&ctx);
         self.draw_points(&ctx);
         self.draw_path(&ctx);
+        self.draw_polys(&ctx);
         self.draw_nodes(&ctx);
         self.draw_arrow(&ctx);
     }
@@ -172,9 +174,17 @@ impl Polycentrics {
     fn draw_points(&self, ctx: &CanvasRenderingContext2d) {
         ctx.set_stroke_style(&JsValue::from_str("black"));
 
-        for i in 0..self.board.get_size() {
-            for j in 0..self.board.get_size() {
+        for i in 0..self.board.get_size() as usize {
+            for j in 0..self.board.get_size() as usize {
                 ctx.begin_path();
+
+                match self.board.get_point(i, j) {
+                    Some(player) => match player {
+                        Player::Gamma => ctx.set_stroke_style(&JsValue::from_str("red")),
+                        Player::Delta => ctx.set_stroke_style(&JsValue::from_str("blue")),
+                    },
+                    None => ctx.set_stroke_style(&JsValue::from_str("black")),
+                }
 
                 ctx.arc(
                     self.canvas_offset + self.canvas_scale * i as f64,
@@ -217,6 +227,36 @@ impl Polycentrics {
         }
 
         ctx.set_stroke_style(&JsValue::from_str("black"));
+    }
+
+    fn draw_polys(&self, ctx: &web_sys::CanvasRenderingContext2d) {
+        ctx.set_stroke_style(&JsValue::from_str("red"));
+        ctx.begin_path();
+
+        for poly in self.board.get_polys() {
+            if poly.len() > 1 {
+                let mut first = poly.first().unwrap();
+
+                for second in poly.iter().skip(1).chain(vec![*first].iter()) {
+                    let first_point = self.board.get_nodes()[*first];
+                    let second_point = self.board.get_nodes()[*second];
+
+                    ctx.move_to(
+                        first_point.x * self.canvas_scale + self.canvas_offset,
+                        first_point.y * self.canvas_scale + self.canvas_offset,
+                    );
+
+                    ctx.line_to(
+                        second_point.x * self.canvas_scale + self.canvas_offset,
+                        second_point.y * self.canvas_scale + self.canvas_offset,
+                    );
+
+                    first = second;
+                }
+            }
+        }
+
+        ctx.stroke();
     }
 
     /// Draw the arrow on to the canvas.

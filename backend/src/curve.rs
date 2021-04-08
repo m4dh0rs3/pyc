@@ -1,4 +1,4 @@
-use math::{angle::Angle, vec2d::Vec2D};
+use math::{angle::Angle, prelude::remap, vec2d::Vec2D};
 
 use crate::arrow::Arrow;
 
@@ -108,6 +108,41 @@ impl Curve {
             Self::new(self.mid, self.radius, self.start, angle, self.turn),
             Self::new(self.mid, self.radius, angle, self.end, self.turn),
         )
+    }
+
+    fn lerp(&self, t: f64) -> Angle {
+        use math::prelude::lerp;
+        use std::f64::consts::TAU;
+
+        match self.turn {
+            Turn::Positive => {
+                if *self.end < *self.start {
+                    lerp(t, *self.start, *self.end + TAU).into()
+                } else {
+                    lerp(t, *self.start, *self.end).into()
+                }
+            }
+            Turn::Negative => {
+                if *self.end > *self.start {
+                    lerp(t, *self.start, *self.end - TAU).into()
+                } else {
+                    lerp(t, *self.start, *self.end).into()
+                }
+            }
+        }
+    }
+
+    pub(crate) fn path(&self, res: usize) -> Vec<Vec2D<f64>> {
+        (0..res)
+            .into_iter()
+            .map(|n| {
+                Into::<Vec2D<f64>>::into(self.mid)
+                    + Vec2D::from_polar(
+                        self.lerp(remap(n as f64, 0.0, res as f64 - 1.0, 0.0, 1.0)),
+                        self.radius as f64,
+                    )
+            })
+            .collect()
     }
 
     /// Generates the 12 curve tiles.

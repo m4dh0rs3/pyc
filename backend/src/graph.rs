@@ -73,6 +73,15 @@ impl<N, E> Graph<N, E> {
             .flatten()
     }
 
+    /// Returns all edges connecting i and j.
+    pub(crate) fn get_edges(&self, i: usize, j: usize) -> Vec<&E> {
+        self.edges
+            .iter()
+            .filter(|((k, l), _)| (i == *k && *l == j) || (i == *l && j == *k))
+            .map(|(_, edge)| edge)
+            .collect()
+    }
+
     /// Insert an value of an edge, connecting two unchecked keys.
     pub(crate) fn insert_edge(&mut self, i: usize, j: usize, edge: E) {
         self.edges.push(((i, j), edge))
@@ -116,7 +125,7 @@ where
     }
 }
 
-const CLIP: f64 = 0.1;
+const CLIP: f64 = 0.05;
 
 impl<E> Graph<Vec2D<f64>, E> {
     /// Insert node or return key to already existing about equal.
