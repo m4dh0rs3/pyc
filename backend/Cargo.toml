@@ -1,11 +1,12 @@
 [package]
-name = "pyc-backend"
-description = "Game logic of Polycentrics, including the board and virtual players"
+name = "polycentrics-backend"
+description = "Game logic of Polycentrics, including the board and virtual players."
 readme = "../README.md"
-version = "0.2.0"
 license = "GPL-3.0-only"
+version = "0.3.0"
 authors = ["m4dh0rs3 <schoeps.benedikt@gmail.com>"]
 edition = "2018"
 
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
 [dependencies]
-math = { git = "https://github.com/m4dh0rs3/math-rs.git" }

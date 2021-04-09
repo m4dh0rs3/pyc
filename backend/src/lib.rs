@@ -1,18 +1,9 @@
 //! # Polycentrics
-//! Game logic of Polycentrics, including the board and virtual players
+//! Game logic of Polycentrics, including the board and virtual players.
 
-mod arrow;
 mod board;
-mod curve;
-mod graph;
+mod math;
 
-pub mod prelude {
-    pub use crate::{
-        arrow::Arrow,
-        board::{Board, Player},
-        curve::{Curve, Turn},
-    };
-}
+pub mod prelude {}
 
-#[cfg(test)]
-mod tests;
+// model is visually validated by an frontend, so no tests
