@@ -14,7 +14,7 @@ Two players alternate choosing unique tiles of radii 1 to 3 and 4 directions to 
     2. The midpoint of the circular arc is the position of the arrow plus a vector of the radius of the arc in the direction of the start angle of the arc.
     3. Move the arrow to the end of the tile.
 3. Find all intersections of the last tile with the path.
-    1. Find the intersection point of the two circles and check if they are contained by the arc
+    1. Find the intersection point of the two circles and check if they are contained by the arc.
 4. For every intersection, find the polygon enclosed by the path.
     1. The set of curves between the intersection indecies are the polygon.
 5. For every free point on the board, check if the winding number of any polygon is not zero. Then the point can be marked by the player.
