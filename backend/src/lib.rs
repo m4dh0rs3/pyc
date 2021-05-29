@@ -4,6 +4,8 @@
 mod board;
 mod math;
 
-pub mod prelude {}
+pub mod prelude {
+    pub use crate::board::Board;
+}
 
 // model is visually validated by an frontend, so no tests

@@ -3,7 +3,7 @@ use crate::math::{turn::Turn, vec2d::Vec2D};
 /// The subject of the game is the [`Board`].
 /// It holds the current state and all data.
 #[derive(Clone)]
-struct Board {
+pub struct Board {
     active: Player,
     step: u8,
     arrow: Arrow,
