@@ -1,7 +1,8 @@
+// YES, generics are horrible in this case, but they solve device interoperability
 use std::ops;
 
 /// Projects `x` from `[a; b]` into `[c; d]`.
-pub(crate) fn remap<
+pub fn remap<
     T: ops::Add<Output = T>
         + ops::Sub<Output = T>
         + ops::Mul<Output = T>
@@ -18,7 +19,7 @@ pub(crate) fn remap<
 }
 
 /// Interpolates linearly from `a` to `b` given t in `[0; 1]`.
-pub(crate) fn lerp<T: ops::Add<Output = T> + ops::Sub<Output = T> + ops::Mul<Output = T> + Copy>(
+pub fn lerp<T: ops::Add<Output = T> + ops::Sub<Output = T> + ops::Mul<Output = T> + Copy>(
     t: T,
     a: T,
     b: T,
@@ -27,9 +28,7 @@ pub(crate) fn lerp<T: ops::Add<Output = T> + ops::Sub<Output = T> + ops::Mul<Out
 }
 
 /// Interpolates linearly between `a`, `b` and `c` given t in `[0; 1]`.
-pub(crate) fn bezier<
-    T: ops::Add<Output = T> + ops::Sub<Output = T> + ops::Mul<Output = T> + Copy,
->(
+pub fn bezier<T: ops::Add<Output = T> + ops::Sub<Output = T> + ops::Mul<Output = T> + Copy>(
     t: T,
     a: T,
     b: T,

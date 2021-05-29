@@ -1,57 +1,81 @@
-use crate::math::{turn::Turn, vec2d::Vec2D};
+use std::vec;
+
+use crate::math::prelude::*;
 
 /// The subject of the game is the [`Board`].
 /// It holds the current state and all data.
 #[derive(Clone)]
 pub struct Board {
+    // not computed because modolus is high complexity
+    // must be chosen at beginning
     active: Player,
+    // not `u/isize` because cross plattform communication (`x86_64` vs `wasm32`)
+    // bigger than `u8` is rare and high serverload (max `2^4096`)
+    // not computed by `path.len()` because function is bigger than `u8`
+    // not reference to `path.len` because pointer bigger or equal than `u8`
     step: u8,
+    // not computed from `path.last()` because empty at first
+    // also complexity
     arrow: Arrow,
+    // not union because size is const
+    // not one vec sliced at step size to reduce complexity
     path: Vec<Curve>,
     tiles: Vec<Curve>,
-    points: [[Option<Player>; 11]; 11],
+    // not const generic because size decided at runtime
+    // not fixed for more variety at same complexity
+    // field is not just zero (palyer id) for lower complexity
+    points: Vec<Vec<Option<Player>>>,
+    // not computed because might be to heavy at higher board sizes (max `2^16`)
     state: State,
+    // same as state
+    // not in state because data is always the same, no matter the state
     score: Score,
-}
-
-impl Board {
-    /// Step by choosing a tile. Panics if index is invalid.
-    fn step(&mut self, tile: usize) {
-        self.set_tile(tile);
-    }
-
-    /// Set a tile on the [`Board`].
-    fn set_tile(&mut self, tile: usize) {
-        let mut tile = self.tiles.remove(tile);
-
-        tile.start = (tile.start + self.arrow.turn).normal();
-        tile.end = (tile.end + self.arrow.turn).normal();
-
-        tile.mid = self.arrow.position
-            + Into::<Vec2D<i8>>::into(Vec2D::from_polar(
-                tile.start + Turn::straight(),
-                tile.radius as f64,
-            ));
-
-        self.arrow.turn = tile.start;
-        self.arrow.position =
-            tile.mid + Into::<Vec2D<i8>>::into(Vec2D::from_polar(tile.end, tile.radius as f64));
-
-        self.path.push(tile);
-    }
 }
 
 /// Enum of possible players.
 /// [`Player::Gamma`] inspired by GAMMAGRAPHICS.
+// is not player id as u8 because handling of draws and out of border moves
 #[derive(Clone, Copy)]
 enum Player {
     Gamma,
     Delta,
 }
 
+/// The pointer where the next tile will be appended.
+#[derive(Clone)]
+struct Arrow {
+    // i8, because there are out of border moves
+    position: Vec2D<i8>,
+    angle: Angle,
+}
+
+/// A tile of an polycentric curve.
+#[derive(Clone)]
+pub struct Curve {
+    // as `Arrow` can move out of border
+    mid: Vec2D<i8>,
+    radius: u8,
+    // "historical" start, not the smaller angle, nor a side of the curve
+    start: Angle,
+    end: Angle,
+    // not a boolean (is_positive) because of asthetic reasons
+    // otherwise player would only be an u8 and rust has no overhead
+    dir: Direction,
+}
+
+/// Turn-direction of [`Curve`].
+#[derive(Clone)]
+pub enum Direction {
+    // Clockwise shorthand (its just too long)
+    Positive,
+    // Counterclockwise shorthand
+    Negative,
+}
+
 /// The possible states the [`Board`] can be in.
 /// They are exclusive and alter the behavior
 /// of methods called on the [`Board`].
+// `Board` itself is not an enum because data is the same no matter the state
 #[derive(Clone)]
 enum State {
     Victory(Player),
@@ -64,36 +88,12 @@ enum State {
 /// Nevertheless this does not have to decide
 /// the end result if the opponent makes an
 /// invalid move.
+// not an union because of high complexity
 #[derive(Clone)]
 struct Score {
-    gamma: u16,
-    delta: u16,
-}
-
-/// The pointer where the next tile will be appended.
-#[derive(Clone)]
-struct Arrow {
-    position: Vec2D<i8>,
-    turn: Turn,
-}
-
-/// A tile of an polycentric curve.
-#[derive(Clone)]
-struct Curve {
-    mid: Vec2D<i8>,
-    radius: u8,
-    start: Turn,
-    end: Turn,
-    turn_dir: TurnDir,
-}
-
-/// Turn-direction.
-#[derive(Clone)]
-pub enum TurnDir {
-    // Clockwise shorthand
-    Positive,
-    // Counterclockwise shorthand
-    Negative,
+    // field of max `u8 x u8 = u64 <=> 2^8*2^8 = 2^8^2 = 2^64`
+    gamma: u64,
+    delta: u64,
 }
 
 impl Default for Board {
@@ -102,36 +102,89 @@ impl Default for Board {
             active: Player::Gamma,
             step: 0,
             arrow: Arrow {
+                // start in the middle
                 position: Vec2D::new(5, 5),
-                turn: Turn::zero(),
+                angle: Angle::zero(),
             },
+            // by default there are 12 tiles
             path: Vec::with_capacity(12),
             tiles: Curve::convex_4x3(),
-            points: [[None; 11]; 11],
+            // field of 11 x 11
+            points: vec![vec![None; 11]; 11],
             state: State::Pending,
             score: Score { gamma: 0, delta: 0 },
         }
     }
 }
 
+impl Board {
+    /// Show remaining tiles.
+    pub fn options(&self) -> &[Curve] {
+        if let State::Pending = self.state {
+            &self.tiles[..]
+        } else {
+            // you can't set any tiles if the game is over
+            // cant return reference to empty vec, as its droped at runtime
+            // but empty slice is optimized at compiletime
+            &[]
+        }
+    }
+
+    /// Step by choosing a tile. Panics if index on remaining tiles (`[Board::options()]`) is invalid.
+    pub fn step(&mut self, tile: usize) {
+        self.set_tile(tile);
+    }
+
+    /// Set a tile on the [`Board`].
+    fn set_tile(&mut self, tile: usize) {
+        // removes and retunrns the tile, panics if the index is out of bounds
+        let mut tile = self.tiles.remove(tile);
+
+        // adjust the rotation of the curve to the arrow
+        // this is like local to global transformation, first rotation
+        tile.start = (tile.start + self.arrow.angle).normal();
+        tile.end = (tile.end + self.arrow.angle).normal();
+
+        // and than translation
+        tile.mid = self.arrow.position
+            + Into::<Vec2D<i8>>::into(Vec2D::from_polar(
+                tile.start + Angle::straight(),
+                tile.radius as f64,
+            ));
+
+        // set the arrow to the end of the curve
+        self.arrow.angle = tile.start;
+        self.arrow.position =
+            tile.mid + Into::<Vec2D<i8>>::into(Vec2D::from_polar(tile.end, tile.radius as f64));
+
+        // insert the curve into the path
+        self.path.push(tile);
+    }
+
+    /// Check for polygons and collect points.
+    fn update_score(&mut self) {
+        todo!()
+    }
+}
+
 impl Curve {
-    /// Checks if [`Curve`] contains an [`Turn`].
-    /// This can't be made with simple comparisons,
+    /// Checks if [`Curve`] contains an [`Angle`].
+    /// This can't be done with simple comparisons,
     /// as [`Curve`] is an modulo-intervall.
-    fn contains(&self, turn: Turn) -> bool {
-        match self.turn_dir {
-            TurnDir::Positive => {
+    fn contains(&self, angle: Angle) -> bool {
+        match self.dir {
+            Direction::Positive => {
                 if self.start > self.end {
-                    !(turn > self.end && turn < self.start)
+                    !(angle > self.end && angle < self.start)
                 } else {
-                    turn >= self.start && turn <= self.end
+                    angle >= self.start && angle <= self.end
                 }
             }
-            TurnDir::Negative => {
+            Direction::Negative => {
                 if self.start < self.end {
-                    !(turn > self.start && turn < self.end)
+                    !(angle > self.start && angle < self.end)
                 } else {
-                    turn >= self.end && turn <= self.start
+                    angle >= self.end && angle <= self.start
                 }
             }
         }
@@ -139,7 +192,7 @@ impl Curve {
 
     /// Check intersection with another [`Curve`].
     /// Based on: [Intersection of two circles](http://paulbourke.net/geometry/circlesphere/)
-    fn intersect(&self, other: &Curve) -> Vec<(Vec2D<f64>, Turn, Turn)> {
+    fn intersect(&self, other: &Curve) -> Vec<(Vec2D<f64>, Angle, Angle)> {
         // offsets between circle centers
         let off: Vec2D<f64> = (other.mid - self.mid).into();
 
@@ -171,8 +224,8 @@ impl Curve {
             .map(|point| {
                 (
                     point,
-                    (point - Into::<Vec2D<f64>>::into(self.mid)).turn(),
-                    (point - Into::<Vec2D<f64>>::into(other.mid)).turn(),
+                    (point - Into::<Vec2D<f64>>::into(self.mid)).angle(),
+                    (point - Into::<Vec2D<f64>>::into(other.mid)).angle(),
                 )
             })
             .filter(|(_, self_angle, other_angle)| {
@@ -187,21 +240,36 @@ impl Curve {
     #[rustfmt::skip]
     fn convex_4x3() -> Vec<Self> {
         vec![
-            Self { mid: Vec2D::zero(), radius: 1, start: Turn::half(), end: Turn::quarter(), turn_dir: TurnDir::Negative },
-            Self { mid: Vec2D::zero(), radius: 2, start: Turn::half(), end: Turn::quarter(), turn_dir: TurnDir::Negative },
-            Self { mid: Vec2D::zero(), radius: 3, start: Turn::half(), end: Turn::quarter(), turn_dir: TurnDir::Negative },
+            Self { mid: Vec2D::zero(), radius: 1, start: Angle::half(), end: Angle::quarter(), dir: Direction::Negative },
+            Self { mid: Vec2D::zero(), radius: 2, start: Angle::half(), end: Angle::quarter(), dir: Direction::Negative },
+            Self { mid: Vec2D::zero(), radius: 3, start: Angle::half(), end: Angle::quarter(), dir: Direction::Negative },
 
-            Self { mid: Vec2D::zero(), radius: 3, start: Turn::zero(), end: Turn::quarter(), turn_dir: TurnDir::Positive },
-            Self { mid: Vec2D::zero(), radius: 2, start: Turn::zero(), end: Turn::quarter(), turn_dir: TurnDir::Positive },
-            Self { mid: Vec2D::zero(), radius: 1, start: Turn::zero(), end: Turn::quarter(), turn_dir: TurnDir::Positive },
+            Self { mid: Vec2D::zero(), radius: 3, start: Angle::zero(), end: Angle::quarter(), dir: Direction::Positive },
+            Self { mid: Vec2D::zero(), radius: 2, start: Angle::zero(), end: Angle::quarter(), dir: Direction::Positive },
+            Self { mid: Vec2D::zero(), radius: 1, start: Angle::zero(), end: Angle::quarter(), dir: Direction::Positive },
 
-            Self { mid: Vec2D::zero(), radius: 1, start: Turn::half(), end: Turn::three_quarter(), turn_dir: TurnDir::Positive },
-            Self { mid: Vec2D::zero(), radius: 2, start: Turn::half(), end: Turn::three_quarter(), turn_dir: TurnDir::Positive },
-            Self { mid: Vec2D::zero(), radius: 3, start: Turn::half(), end: Turn::three_quarter(), turn_dir: TurnDir::Positive },
+            Self { mid: Vec2D::zero(), radius: 1, start: Angle::half(), end: Angle::three_quarter(), dir: Direction::Positive },
+            Self { mid: Vec2D::zero(), radius: 2, start: Angle::half(), end: Angle::three_quarter(), dir: Direction::Positive },
+            Self { mid: Vec2D::zero(), radius: 3, start: Angle::half(), end: Angle::three_quarter(), dir: Direction::Positive },
 
-            Self { mid: Vec2D::zero(), radius: 3, start: Turn::zero(), end: Turn::three_quarter(), turn_dir: TurnDir::Negative },
-            Self { mid: Vec2D::zero(), radius: 2, start: Turn::zero(), end: Turn::three_quarter(), turn_dir: TurnDir::Negative },
-            Self { mid: Vec2D::zero(), radius: 1, start: Turn::zero(), end: Turn::three_quarter(), turn_dir: TurnDir::Negative },
+            Self { mid: Vec2D::zero(), radius: 3, start: Angle::zero(), end: Angle::three_quarter(), dir: Direction::Negative },
+            Self { mid: Vec2D::zero(), radius: 2, start: Angle::zero(), end: Angle::three_quarter(), dir: Direction::Negative },
+            Self { mid: Vec2D::zero(), radius: 1, start: Angle::zero(), end: Angle::three_quarter(), dir: Direction::Negative },
         ]
+    }
+}
+
+use std::fmt;
+
+impl fmt::Debug for Curve {
+    // name curves, shall removed later
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{} {} {}x",
+            if self.start.0 < 0.5 { "left" } else { "right" },
+            if self.end.0 < 0.5 { "up" } else { "down" },
+            self.radius,
+        )
     }
 }

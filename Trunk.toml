@@ -1,0 +1,22 @@
+# Trunk config
+[build]
+# The index HTML file to drive the bundling process.
+target = "frontend/index.html"
+# The output dir for all final assets.
+dist = "frontend/public"
+# The public URL from which assets are to be served.
+public_url = "/"
+
+[watch]
+# Paths to watch, defaults to build target parent folder.
+path = ["backend/src", "frontend/src"]
+
+[serve]
+# The port to serve on.
+port = 8080
+# Open a browser tab once the initial build is complete.
+open = true
+
+[clean]
+# The output dir for all final assets.
+dist = "frontend/public"

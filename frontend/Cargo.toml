@@ -9,13 +9,14 @@ edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[lib]
-crate-type = ["cdylib", "rlib"]
+# If using wasm-pack (not needed with Trunk)
+# [lib]
+# crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 backend = { path = "../backend", package = "polycentrics-backend" }
 
-yew = "0.17"
-wasm-bindgen = "0.2"
+yew = "0.18"
+# wasm-bindgen = "0.2"
 web-sys = { version = "0.3", features = ["HtmlCanvasElement", "CanvasRenderingContext2d"] }
 console_error_panic_hook = "0.1"

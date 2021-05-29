@@ -1,13 +1,13 @@
 /// 2-Dimensional vector of `T` on `x` and `y`.
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub(crate) struct Vec2D<T> {
-    pub(crate) x: T,
-    pub(crate) y: T,
+pub struct Vec2D<T> {
+    pub x: T,
+    pub y: T,
 }
 
 impl<T> Vec2D<T> {
     /// Creates new [`Vec2D`].
-    pub(crate) fn new(x: T, y: T) -> Self {
+    pub fn new(x: T, y: T) -> Self {
         Self { x, y }
     }
 }
@@ -122,9 +122,9 @@ impl<T: ops::MulAssign + Copy> ops::MulAssign<T> for Vec2D<T> {
     }
 }
 
+// TODO: understand why this collides with impls of `f64`
 /* impl ops::Mul<Vec2D<f64>> for f64 {
     type Output = Vec2D<f64>;
-
     fn mul(self, rhs: Self::Output) -> Self::Output {
         Self::Output {
             x: self * rhs.x,
@@ -162,9 +162,9 @@ impl<T: ops::DivAssign + Copy> ops::DivAssign<T> for Vec2D<T> {
     }
 }
 
+// TODO: understand why this collides with impls of `f64`
 /* impl ops::Div<Vec2D<f64>> for f64 {
     type Output = Vec2D<f64>;
-
     fn div(self, rhs: Self::Output) -> Self::Output {
         Self::Output {
             x: self / rhs.x,
@@ -173,13 +173,14 @@ impl<T: ops::DivAssign + Copy> ops::DivAssign<T> for Vec2D<T> {
     }
 } */
 
-use super::turn::Turn;
+use super::angle::Angle;
 
+// cannot be generic because there is no(?) trait for trigonmetric types, "Float" would suffice
 macro_rules! vec2d_trig {
     ($Float: ty) => {
         impl Vec2D<$Float> {
             /// Returns the length of the vector.
-            pub(crate) fn maq(&self) -> $Float {
+            pub fn maq(&self) -> $Float {
                 (self.x.powi(2) + self.y.powi(2)).sqrt()
             }
 
@@ -202,16 +203,16 @@ macro_rules! vec2d_trig {
             }
 
             /// Creates a vector from polar coordinates.
-            pub(crate) fn from_polar(turn: Turn, radius: $Float) -> Self {
+            pub fn from_polar(angle: Angle, radius: $Float) -> Self {
                 Self {
-                    x: radius * turn.cos() as $Float,
-                    y: radius * turn.sin() as $Float,
+                    x: radius * angle.cos() as $Float,
+                    y: radius * angle.sin() as $Float,
                 }
             }
 
             /// Returns turns around the origin.
-            pub(crate) fn turn(&self) -> Turn {
-                (Turn::from_pi(self.y.atan2(-self.x).into())).normal()
+            pub fn angle(&self) -> Angle {
+                (Angle::from_pi(self.y.atan2(-self.x).into())).normal()
             }
         }
     };
@@ -263,6 +264,7 @@ impl<
 
         let k = s1.cross_zero(&s2);
 
+        // TODO: solve generic horror of ZERO (maybe bitwise ops?)
         if k == 0.into() {
             return None;
         }
@@ -272,6 +274,7 @@ impl<
         let s = s1.cross_zero(&d) / k;
         let t = s2.cross_zero(&d) / k;
 
+        // greater/smaller equal are often used, but touching segments do not intersect!
         if s > 0.into() && s < 1.into() && t > 0.into() && t < 1.into() {
             Some(Self {
                 x: p1.x + t * s1.x,
@@ -332,9 +335,11 @@ from_integral!(i16, f32);
 from_integral!(i32, f32);
 from_integral!(i64, f32);
 
+// little cheat to address all zeroable types: `From<i8>` or similar
+// TODO: impl when `!(not)NonZero` exists (currently only nightly)
 impl<T: From<i8>> Vec2D<T> {
     /// Create new vector at origin.
-    pub(crate) fn zero() -> Self {
+    pub fn zero() -> Self {
         Self {
             x: 0.into(),
             y: 0.into(),

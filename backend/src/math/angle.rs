@@ -1,22 +1,28 @@
+// why is this not generic? Because floats differ in resolution and size
+// but dont really constrain compile time decisions. `f64` may have the
+// only suitiable resolution for close winding numbers
+// TODO: test if `f32` would suffice, because wasm loves f32
 use std::f64::consts::{PI, TAU};
 
-/// Holds an value of turns.
+/// Holds an value of turns `Turn in [0, 1]` (modolu-intervall).
+// the docs call it a turn, but internally it is refered to as angle
+// keep in mind that a full turn is `1`, not `π`, nor `360`
 #[derive(Clone, Copy, PartialEq, PartialOrd)]
-pub(crate) struct Turn(f64);
+pub struct Angle(pub f64);
 
-impl Turn {
+impl Angle {
     /// Returns a new turn.
-    fn new(turn: f64) -> Self {
-        Self(turn)
+    fn new(angle: f64) -> Self {
+        Self(angle)
     }
 
     /// Returns 0 turns.
-    pub(crate) fn zero() -> Self {
+    pub fn zero() -> Self {
         Self(0.0)
     }
 
     /// Returns turn given radians [-π, π].
-    pub(crate) fn from_pi(rad_pi: f64) -> Self {
+    pub fn from_pi(rad_pi: f64) -> Self {
         Self((rad_pi + PI) / TAU)
     }
 
@@ -26,7 +32,7 @@ impl Turn {
     }
 
     /// Returns a normalized turn in `[0; 1]`.
-    pub(crate) fn normal(&self) -> Self {
+    pub fn normal(&self) -> Self {
         Self(self.0.fract())
     }
 
@@ -41,39 +47,39 @@ impl Turn {
     }
 
     /// Returns a quarter turn.
-    pub(crate) fn quarter() -> Self {
+    pub fn quarter() -> Self {
         Self(0.25)
     }
 
     /// Returns a half turn.
-    pub(crate) fn half() -> Self {
+    pub fn half() -> Self {
+        Self(0.5)
+    }
+
+    /// Returns a straight turn
+    pub fn straight() -> Self {
         Self(0.5)
     }
 
     /// Returns a three quarter turn.
-    pub(crate) fn three_quarter() -> Self {
+    pub fn three_quarter() -> Self {
         Self(0.75)
     }
 
     /// Returns the sine of the turn.
-    pub(crate) fn sin(&self) -> f64 {
+    pub fn sin(&self) -> f64 {
         self.into_tau().sin()
     }
 
     /// Returns the cosine of the turn.
-    pub(crate) fn cos(&self) -> f64 {
+    pub fn cos(&self) -> f64 {
         self.into_tau().cos()
-    }
-
-    /// Returns a straigth turn
-    pub(crate) fn straight() -> Self {
-        Self(0.5)
     }
 }
 
 use std::ops;
 
-impl ops::Add for Turn {
+impl ops::Add for Angle {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self::Output {
@@ -81,7 +87,7 @@ impl ops::Add for Turn {
     }
 }
 
-impl ops::Sub for Turn {
+impl ops::Sub for Angle {
     type Output = Self;
 
     fn sub(self, rhs: Self) -> Self::Output {
