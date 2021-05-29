@@ -8,42 +8,42 @@ use crate::math::prelude::*;
 pub struct Board {
     // not computed because modolus is high complexity
     // must be chosen at beginning
-    active: Player,
+    pub active: Player,
     // not `u/isize` because cross plattform communication (`x86_64` vs `wasm32`)
     // bigger than `u8` is rare and high serverload (max `2^4096`)
     // not computed by `path.len()` because function is bigger than `u8`
     // not reference to `path.len` because pointer bigger or equal than `u8`
-    step: u8,
+    pub step: u8,
     // not computed from `path.last()` because empty at first
     // also complexity
-    arrow: Arrow,
+    pub arrow: Arrow,
     // not union because size is const
     // not one vec sliced at step size to reduce complexity
-    path: Vec<Curve>,
-    tiles: Vec<Curve>,
+    pub path: Vec<Curve>,
+    pub tiles: Vec<Curve>,
     // not const generic because size decided at runtime
     // not fixed for more variety at same complexity
     // field is not just zero (palyer id) for lower complexity
-    points: Vec<Vec<Option<Player>>>,
+    pub points: Vec<Vec<Option<Player>>>,
     // not computed because might be to heavy at higher board sizes (max `2^16`)
-    state: State,
+    pub state: State,
     // same as state
     // not in state because data is always the same, no matter the state
-    score: Score,
+    pub score: Score,
 }
 
 /// Enum of possible players.
 /// [`Player::Gamma`] inspired by GAMMAGRAPHICS.
 // is not player id as u8 because handling of draws and out of border moves
 #[derive(Clone, Copy)]
-enum Player {
+pub enum Player {
     Gamma,
     Delta,
 }
 
 /// The pointer where the next tile will be appended.
 #[derive(Clone)]
-struct Arrow {
+pub struct Arrow {
     // i8, because there are out of border moves
     position: Vec2D<i8>,
     angle: Angle,
@@ -77,7 +77,7 @@ pub enum Direction {
 /// of methods called on the [`Board`].
 // `Board` itself is not an enum because data is the same no matter the state
 #[derive(Clone)]
-enum State {
+pub enum State {
     Victory(Player),
     Pending,
     Draw,
@@ -90,7 +90,7 @@ enum State {
 /// invalid move.
 // not an union because of high complexity
 #[derive(Clone)]
-struct Score {
+pub struct Score {
     // field of max `u8 x u8 = u64 <=> 2^8*2^8 = 2^8^2 = 2^64`
     gamma: u64,
     delta: u64,
@@ -131,14 +131,17 @@ impl Board {
     }
 
     /// Step by choosing a tile. Panics if index on remaining tiles (`[Board::options()]`) is invalid.
-    pub fn step(&mut self, tile: usize) {
+    pub fn step(&mut self, tile: u8) {
         self.set_tile(tile);
+
+        // increase step
+        self.step += 1;
     }
 
     /// Set a tile on the [`Board`].
-    fn set_tile(&mut self, tile: usize) {
+    fn set_tile(&mut self, tile: u8) {
         // removes and retunrns the tile, panics if the index is out of bounds
-        let mut tile = self.tiles.remove(tile);
+        let mut tile = self.tiles.remove(tile as usize);
 
         // adjust the rotation of the curve to the arrow
         // this is like local to global transformation, first rotation
