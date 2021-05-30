@@ -104,6 +104,7 @@ impl Polycentrics {
     fn board_view(&self) -> Html {
         html! {
             <svg
+                class="board"
                 // could be optimized to only render to string once,
                 // but needs to be cloned anyway
                 width=self.board.points.len().to_string()
@@ -126,15 +127,20 @@ impl Polycentrics {
             .map(|(i, points)| {
                 points.iter().enumerate().map(move |(j, point)| {
                     html! {
-                        // set position to the indecies
-                        <circle cx=i.to_string() cy=j.to_string() r="0.1" fill=match point {
-                            // match the point color
-                            Some(player) => match player {
-                                Player::Gamma => "red",
-                                Player::Delta => "blue",
-                            },
-                            None => "black"
-                        } />
+                        <circle class=match point {
+                                // match the point state
+                                Some(player) => classes!("point", match player {
+                                    Player::Gamma => "point-gamma",
+                                    Player::Delta => "point-delta",
+                                }),
+                                None => classes!("point")
+                            }
+                            // set position to the indecies
+                            cx=i.to_string() cy=j.to_string()
+                            // the [geometric property `r` of svg 2](https://svgwg.org/svg2-draft/geometry.html#R) is not currently (88) supported in firefox
+                            // TODO: remove when supported
+                            r="0.1"
+                        />
                     }
                 })
             })

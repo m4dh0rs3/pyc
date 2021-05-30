@@ -3,7 +3,16 @@
     margin: auto;
 }
 
-.polycentrics svg {
+.board {
     width: 100%;
     height: auto;
 }
+
+.point {
+    /* Not supported in all browsers! (https://svgwg.org/svg2-draft/geometry.html#R) */
+    r: 0.1;
+}
+
+.point-gamma { fill: blue; }
+
+.point-delta { fill: green; }
