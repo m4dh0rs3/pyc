@@ -117,6 +117,11 @@ impl Default for Board {
     }
 }
 
+// no getter functions, because there is a default function
+// for `Board` creation, instead of a `Board::new()` function
+// to reduce complexity. This needs the field to be public anyway.
+// this could make it more hackable, but itss wasm, so it would be
+// very complicated.
 impl Board {
     /// Show remaining tiles.
     pub fn options(&self) -> &[Curve] {
