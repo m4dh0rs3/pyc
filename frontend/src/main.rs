@@ -1,3 +1,5 @@
+use std::f64::consts::TAU;
+
 use backend::prelude::*;
 use yew::prelude::*;
 
@@ -112,6 +114,7 @@ impl Polycentrics {
                 viewBox=format!("-1 -1 {0} {0}", self.board.points.len() + 1)
                 xmlns="http://www.w3.org/2000/svg">
                 { self.board_points() }
+                { self.board_path() }
             </svg>
         }
     }
@@ -129,6 +132,7 @@ impl Polycentrics {
                     html! {
                         <circle class=match point {
                                 // match the point state
+                                // using `classes!` for multiple classes
                                 Some(player) => classes!("point", match player {
                                     Player::Gamma => "point-gamma",
                                     Player::Delta => "point-delta",
@@ -148,10 +152,47 @@ impl Polycentrics {
             .collect()
     }
 
+    /// Render the path of [`Board`] to SVG.
+    fn board_path(&self) -> Html {
+        // iter trough all the path elements
+        self.board
+            .path
+            .iter()
+            .map(|curve| {
+                let circ = curve.radius as f64 * TAU;
+
+                html! {
+                    // not using path arc because its more complex
+                    <circle
+                        class="curve"
+                        // set the midpoint and radius
+                        cx=curve.mid.x.to_string() cy=curve.mid.y.to_string() r=curve.radius.to_string()
+                        // rotate around itself
+                        // TODO: check if start angle should be switched with `Curve.dir`
+                        transform=format!("rotate({} {} {})", curve.start.into_deg(), &curve.mid.x, &curve.mid.y)
+                        // draw only `90deg` of the circle
+                        style=format!("stroke-dasharray: {} {};", circ * 0.25, circ * 0.75)
+                    />
+                }
+            })
+            .collect()
+    }
+
     /// [`Html`] view of the tile pad.
     // not a component because not sure how yew handles components
     // communication for tile click. also destroy on update
     fn tile_pad_view(&self) -> Html {
-        html! {}
+        // iterate through all tile options
+        self.board
+            .options()
+            .iter()
+            // include the index as argument for `Board.step(i)`
+            .enumerate()
+            .map(|(i, curve)| {
+                html! {
+                    <button onclick=self.link.callback(move |_| GameMsg::SetTile(i as u8))>{ format!("{:?}", curve) }</button>
+                }
+            })
+            .collect()
     }
 }

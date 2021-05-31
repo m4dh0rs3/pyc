@@ -53,14 +53,14 @@ pub struct Arrow {
 #[derive(Clone)]
 pub struct Curve {
     // as `Arrow` can move out of border
-    mid: Vec2D<i8>,
-    radius: u8,
+    pub mid: Vec2D<i8>,
+    pub radius: u8,
     // "historical" start, not the smaller angle, nor a side of the curve
-    start: Angle,
-    end: Angle,
+    pub start: Angle,
+    pub end: Angle,
     // not a boolean (is_positive) because of asthetic reasons
     // otherwise player would only be an u8 and rust has no overhead
-    dir: Direction,
+    pub dir: Direction,
 }
 
 /// Turn-direction of [`Curve`].
@@ -275,8 +275,8 @@ impl fmt::Debug for Curve {
         write!(
             f,
             "{} {} {}x",
-            if self.start.0 < 0.5 { "left" } else { "right" },
-            if self.end.0 < 0.5 { "up" } else { "down" },
+            if self.start.0 < 0.5 { "Left" } else { "Right" },
+            if self.end.0 < 0.5 { "Up" } else { "Down" },
             self.radius,
         )
     }

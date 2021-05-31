@@ -1,11 +1,17 @@
-.polycentrics {
-    width: 25%;
+body {
+    width: 500px;
     margin: auto;
 }
 
 .board {
     width: 100%;
     height: auto;
+}
+
+.curve {
+    stroke: black;
+    stroke-width: 0.1;
+    fill: none;
 }
 
 .point {

@@ -16,17 +16,17 @@ impl Angle {
         Self(angle)
     }
 
-    /// Returns 0 turns.
+    /// Returns `0` turns.
     pub fn zero() -> Self {
         Self(0.0)
     }
 
-    /// Returns turn given radians [-π, π].
+    /// Returns turn given radians `[-π, π]`.
     pub fn from_pi(rad_pi: f64) -> Self {
         Self((rad_pi + PI) / TAU)
     }
 
-    /// Returns turn given radians [0, τ].
+    /// Returns turn given radians `[0, τ]`.
     fn from_tau(rad_tau: f64) -> Self {
         Self(rad_tau / TAU)
     }
@@ -36,14 +36,19 @@ impl Angle {
         Self(self.0.fract())
     }
 
-    /// Returns the turn as radians [0, τ].
+    /// Returns the turn as radians `[0, τ]`.
     fn into_tau(&self) -> f64 {
         self.0 * TAU
     }
 
-    /// Returns the turn as radians [-π, π].
-    fn into_pi(&self) -> f64 {
+    /// Returns the turn as radians `[-π, π]`.
+    pub fn into_pi(&self) -> f64 {
         self.0 * TAU - PI
+    }
+
+    /// Returns the turn as degree `[0, 360]`.
+    pub fn into_deg(&self) -> f64 {
+        self.0 * 360.0
     }
 
     /// Returns a quarter turn.
