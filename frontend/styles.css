@@ -8,9 +8,27 @@ body {
     height: auto;
 }
 
+.tile-pad {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+}
+
+.tile {}
+
 .curve {
     stroke: black;
     stroke-width: 0.1;
+    fill: none;
+}
+
+.arrow {
+    stroke: black;
+    stroke-width: 0.1;
+}
+
+.midpoint { 
+    stroke: red;
+    stroke-width: 0.05;
     fill: none;
 }
 

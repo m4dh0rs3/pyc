@@ -71,6 +71,11 @@ impl Angle {
         Self(0.75)
     }
 
+    /// Returns a full turn.
+    pub fn full() -> Self {
+        Self(1.0)
+    }
+
     /// Returns the sine of the turn.
     pub fn sin(&self) -> f64 {
         self.into_tau().sin()

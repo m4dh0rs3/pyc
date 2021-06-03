@@ -6,7 +6,7 @@ mod math;
 
 pub mod prelude {
     pub use crate::{
-        board::{Board, Curve, Player},
+        board::{Board, Curve, Direction, Player},
         math::prelude::*,
     };
 }

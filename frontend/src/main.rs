@@ -113,15 +113,17 @@ impl Polycentrics {
                 height=self.board.points.len().to_string()
                 viewBox=format!("-1 -1 {0} {0}", self.board.points.len() + 1)
                 xmlns="http://www.w3.org/2000/svg">
-                { self.board_points() }
-                { self.board_path() }
+                { self.arrow_svg() }
+                // { self.midpoint_svg() }
+                { self.path_svg() }
+                { self.points_svg() }
             </svg>
         }
     }
 
     /// Render the points of [`Board`] to SVG.
     // this cant be static as points can change color
-    fn board_points(&self) -> Html {
+    fn points_svg(&self) -> Html {
         // iter through all the points
         self.board
             .points
@@ -142,7 +144,7 @@ impl Polycentrics {
                             // set position to the indecies
                             cx=i.to_string() cy=j.to_string()
                             // the [geometric property `r` of svg 2](https://svgwg.org/svg2-draft/geometry.html#R) is not currently (88) supported in firefox
-                            // TODO: remove when supported
+                            // TODO: remove when supported, also at `midpoint_svg()`
                             r="0.1"
                         />
                     }
@@ -153,7 +155,7 @@ impl Polycentrics {
     }
 
     /// Render the path of [`Board`] to SVG.
-    fn board_path(&self) -> Html {
+    fn path_svg(&self) -> Html {
         // iter trough all the path elements
         self.board
             .path
@@ -169,7 +171,10 @@ impl Polycentrics {
                         cx=curve.mid.x.to_string() cy=curve.mid.y.to_string() r=curve.radius.to_string()
                         // rotate around itself
                         // TODO: check if start angle should be switched with `Curve.dir`
-                        transform=format!("rotate({} {} {})", curve.start.into_deg(), &curve.mid.x, &curve.mid.y)
+                        transform=format!("rotate({} {} {})", match curve.dir {
+                            Direction::Positive => curve.start.into_deg(),
+                            Direction::Negative => curve.end.into_deg(),
+                        }, &curve.mid.x, &curve.mid.y)
                         // draw only `90deg` of the circle
                         style=format!("stroke-dasharray: {} {};", circ * 0.25, circ * 0.75)
                     />
@@ -178,21 +183,59 @@ impl Polycentrics {
             .collect()
     }
 
+    /// Render the midpoints of the [`Curve`] to SVG.
+    // debug view!
+    fn midpoint_svg(&self) -> Html {
+        self.board
+            .path
+            .iter()
+            .map(|curve| {
+                html! {
+                    <circle
+                        class="midpoint"
+                        // set the midpoint and radius
+                        cx=curve.mid.x.to_string() cy=curve.mid.y.to_string() r="0.2"
+                    />
+                }
+            })
+            .collect()
+    }
+
+    /// Render the arrow of [`Board`] to SVG.
+    fn arrow_svg(&self) -> Html {
+        html! {
+            // TODO: something fancier than line
+            <line
+                class="arrow"
+                // set position
+                x1=self.board.arrow.position.x.to_string() y1=self.board.arrow.position.y.to_string()
+                // the arrow statically points to the right,
+                x2={ self.board.arrow.position.x as f64 + 0.5 }.to_string() y2=self.board.arrow.position.y.to_string()
+                // and than gets rotated
+                transform=format!("rotate({} {} {})", self.board.arrow.angle.into_deg(), &self.board.arrow.position.x, &self.board.arrow.position.y)
+            />
+        }
+    }
+
     /// [`Html`] view of the tile pad.
     // not a component because not sure how yew handles components
     // communication for tile click. also destroy on update
     fn tile_pad_view(&self) -> Html {
-        // iterate through all tile options
-        self.board
-            .options()
-            .iter()
-            // include the index as argument for `Board.step(i)`
-            .enumerate()
-            .map(|(i, curve)| {
-                html! {
-                    <button onclick=self.link.callback(move |_| GameMsg::SetTile(i as u8))>{ format!("{:?}", curve) }</button>
-                }
-            })
-            .collect()
+        html! {
+            <div class="tile-pad">{
+                // iterate through all tile options
+                self.board
+                    .options()
+                    .iter()
+                    // include the index as argument for `Board.step(i)`
+                    .enumerate()
+                    .map(|(i, curve)| {
+                        html! {
+                            <button class="tile" onclick=self.link.callback(move |_| GameMsg::SetTile(i as u8))>{ format!("{:?}", curve) }</button>
+                        }
+                    })
+                    .collect::<Html>()
+            }</div>
+        }
     }
 }

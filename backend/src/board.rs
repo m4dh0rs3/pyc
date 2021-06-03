@@ -1,5 +1,3 @@
-use std::vec;
-
 use crate::math::prelude::*;
 
 /// The subject of the game is the [`Board`].
@@ -45,8 +43,8 @@ pub enum Player {
 #[derive(Clone)]
 pub struct Arrow {
     // i8, because there are out of border moves
-    position: Vec2D<i8>,
-    angle: Angle,
+    pub position: Vec2D<i8>,
+    pub angle: Angle,
 }
 
 /// A tile of an polycentric curve.
@@ -64,6 +62,7 @@ pub struct Curve {
 }
 
 /// Turn-direction of [`Curve`].
+// is needed for checking curve containment
 #[derive(Clone)]
 pub enum Direction {
     // Clockwise shorthand (its just too long)
@@ -144,24 +143,26 @@ impl Board {
     }
 
     /// Set a tile on the [`Board`].
+    // to understand what happens, have a look at this: [GeoGebra PYC](https://www.geogebra.org/calculator/qp8gjrsz)
     fn set_tile(&mut self, tile: u8) {
         // removes and retunrns the tile, panics if the index is out of bounds
         let mut tile = self.tiles.remove(tile as usize);
 
-        // adjust the rotation of the curve to the arrow
-        // this is like local to global transformation, first rotation
-        tile.start = (tile.start + self.arrow.angle).normal();
-        tile.end = (tile.end + self.arrow.angle).normal();
-
-        // and than translation
+        // calculate midpoint
+        // this is like local to global transformation, first translation
         tile.mid = self.arrow.position
             + Into::<Vec2D<i8>>::into(Vec2D::from_polar(
-                tile.start + Angle::straight(),
+                self.arrow.angle - tile.start,
                 tile.radius as f64,
             ));
 
+        // then adjust the rotation of the curve to the arrow
+        // normalized for checking of containment later
+        tile.start = (tile.start + self.arrow.angle).normal();
+        tile.end = (tile.end + self.arrow.angle).normal();
+
         // set the arrow to the end of the curve
-        self.arrow.angle = tile.start;
+        self.arrow.angle = (tile.start + Angle::straight()).normal();
         self.arrow.position =
             tile.mid + Into::<Vec2D<i8>>::into(Vec2D::from_polar(tile.end, tile.radius as f64));
 
@@ -181,7 +182,9 @@ impl Curve {
     /// as [`Curve`] is an modulo-intervall.
     fn contains(&self, angle: Angle) -> bool {
         match self.dir {
+            // checks arc flag
             Direction::Positive => {
+                // assuming normalized values
                 if self.start > self.end {
                     !(angle > self.end && angle < self.start)
                 } else {
@@ -228,6 +231,7 @@ impl Curve {
             } else {
                 vec![mid - hypot, mid + hypot]
             })
+            // the declarative is as big as the hard-coded solution, but fancier, so here you go
             .into_iter()
             .map(|point| {
                 (
@@ -248,21 +252,21 @@ impl Curve {
     #[rustfmt::skip]
     fn convex_4x3() -> Vec<Self> {
         vec![
-            Self { mid: Vec2D::zero(), radius: 1, start: Angle::half(), end: Angle::quarter(), dir: Direction::Negative },
-            Self { mid: Vec2D::zero(), radius: 2, start: Angle::half(), end: Angle::quarter(), dir: Direction::Negative },
-            Self { mid: Vec2D::zero(), radius: 3, start: Angle::half(), end: Angle::quarter(), dir: Direction::Negative },
+            Self { mid: Vec2D::zero(), radius: 3, start: Angle::quarter(), end: Angle::zero(), dir: Direction::Negative },
+            Self { mid: Vec2D::zero(), radius: 2, start: Angle::quarter(), end: Angle::zero(), dir: Direction::Negative },
+            Self { mid: Vec2D::zero(), radius: 1, start: Angle::quarter(), end: Angle::zero(), dir: Direction::Negative },
 
-            Self { mid: Vec2D::zero(), radius: 3, start: Angle::zero(), end: Angle::quarter(), dir: Direction::Positive },
-            Self { mid: Vec2D::zero(), radius: 2, start: Angle::zero(), end: Angle::quarter(), dir: Direction::Positive },
-            Self { mid: Vec2D::zero(), radius: 1, start: Angle::zero(), end: Angle::quarter(), dir: Direction::Positive },
+            Self { mid: Vec2D::zero(), radius: 1, start: Angle::three_quarter(), end: Angle::zero(), dir: Direction::Positive },
+            Self { mid: Vec2D::zero(), radius: 2, start: Angle::three_quarter(), end: Angle::zero(), dir: Direction::Positive },
+            Self { mid: Vec2D::zero(), radius: 3, start: Angle::three_quarter(), end: Angle::zero(), dir: Direction::Positive },
 
-            Self { mid: Vec2D::zero(), radius: 1, start: Angle::half(), end: Angle::three_quarter(), dir: Direction::Positive },
-            Self { mid: Vec2D::zero(), radius: 2, start: Angle::half(), end: Angle::three_quarter(), dir: Direction::Positive },
-            Self { mid: Vec2D::zero(), radius: 3, start: Angle::half(), end: Angle::three_quarter(), dir: Direction::Positive },
+            Self { mid: Vec2D::zero(), radius: 3, start: Angle::quarter(), end: Angle::half(), dir: Direction::Positive },
+            Self { mid: Vec2D::zero(), radius: 2, start: Angle::quarter(), end: Angle::half(), dir: Direction::Positive },
+            Self { mid: Vec2D::zero(), radius: 1, start: Angle::quarter(), end: Angle::half(), dir: Direction::Positive },
 
-            Self { mid: Vec2D::zero(), radius: 3, start: Angle::zero(), end: Angle::three_quarter(), dir: Direction::Negative },
-            Self { mid: Vec2D::zero(), radius: 2, start: Angle::zero(), end: Angle::three_quarter(), dir: Direction::Negative },
-            Self { mid: Vec2D::zero(), radius: 1, start: Angle::zero(), end: Angle::three_quarter(), dir: Direction::Negative },
+            Self { mid: Vec2D::zero(), radius: 1, start: Angle::three_quarter(), end: Angle::half(), dir: Direction::Negative },
+            Self { mid: Vec2D::zero(), radius: 2, start: Angle::three_quarter(), end: Angle::half(), dir: Direction::Negative },
+            Self { mid: Vec2D::zero(), radius: 3, start: Angle::three_quarter(), end: Angle::half(), dir: Direction::Negative },
         ]
     }
 }

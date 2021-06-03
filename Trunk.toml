@@ -9,7 +9,8 @@ public_url = "/"
 
 [watch]
 # Paths to watch, defaults to build target parent folder.
-path = ["backend/src", "frontend/src"]
+# TODO: move into workspace directory when [#181](https://github.com/thedodd/trunk/issues/181) is fixed
+path = ["backend/src", "frontend"]
 
 [serve]
 # The port to serve on.

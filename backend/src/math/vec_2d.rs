@@ -205,6 +205,7 @@ macro_rules! vec2d_trig {
             /// Creates a vector from polar coordinates.
             pub fn from_polar(angle: Angle, radius: $Float) -> Self {
                 Self {
+                    // clockwise direction with increasing angle
                     x: radius * angle.cos() as $Float,
                     y: radius * angle.sin() as $Float,
                 }
