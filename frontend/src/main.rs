@@ -171,9 +171,10 @@ impl Polycentrics {
                         cx=curve.mid.x.to_string() cy=curve.mid.y.to_string() r=curve.radius.to_string()
                         // rotate around itself
                         // TODO: check if start angle should be switched with `Curve.dir`
-                        transform=format!("rotate({} {} {})", match curve.dir {
-                            Direction::Positive => curve.start.into_deg(),
-                            Direction::Negative => curve.end.into_deg(),
+                        transform=format!("rotate({} {} {})", if curve.off.0 > 0.0 {
+                            curve.start.into_deg()
+                        } else {
+                            (curve.start + curve.off).normal().into_deg()
                         }, &curve.mid.x, &curve.mid.y)
                         // draw only `90deg` of the circle
                         style=format!("stroke-dasharray: {} {};", circ * 0.25, circ * 0.75)
