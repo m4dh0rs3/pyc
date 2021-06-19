@@ -173,7 +173,7 @@ impl<T: ops::DivAssign + Copy> ops::DivAssign<T> for Vec2D<T> {
     }
 } */
 
-use super::angle::Angle;
+use super::prelude::Angle;
 
 // cannot be generic because there is no(?) trait for trigonmetric types, "Float" would suffice
 macro_rules! vec2d_trig {
@@ -222,7 +222,7 @@ macro_rules! vec2d_trig {
 //vec2d_trig!(f32);
 vec2d_trig!(f64);
 
-use super::utils::{bezier, lerp};
+use super::prelude::{bezier, lerp};
 
 impl<T: ops::Add<Output = T> + ops::Sub<Output = T> + ops::Mul<Output = T> + Copy> Vec2D<T> {
     /// Interpolates linearly from `a` to `b` given t in `[0; 1]`.
