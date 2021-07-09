@@ -171,6 +171,9 @@ impl Board {
             for (i, tile) in self.path[..self.path.len() - 2].iter().enumerate() {
                 // find every intersections of `tile` and `last`
                 for (section, last_angle, tile_angle) in last.intersects(tile) {
+                    // the crossing number algo does not work for non-simple polys
+                    // thats why we have to use the winding number algo
+
                     // iterate through all free points. could be optimized with `flatten` and `filter`
                     for (i, points) in self.points.iter().enumerate() {
                         for (j, point) in points.iter().enumerate() {
@@ -180,6 +183,11 @@ impl Board {
                                 for curve in self.path[i..].iter() {
                                     for n in 0..DETAIL {
                                         //winding += curve.mid + Vec2D::from_polar(curve.start + curve.off * n as f64 / DETAIL as f64, curve.radius)
+                                        let poly = Into::<Vec2D<f64>>::into(curve.mid)
+                                            + Vec2D::from_polar(
+                                                curve.start + curve.off * n as f64 / DETAIL as f64,
+                                                curve.radius,
+                                            );
                                     }
                                 }
 
