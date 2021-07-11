@@ -95,7 +95,7 @@ impl Default for Board {
 
 // detail of curve interpolation to find winding number.
 // TODO: could be determend analyticaly
-const DETAIL: u8 = 12;
+const DETAIL: usize = 12;
 
 // no getter functions, because there is a default function
 // for `Board` creation, instead of a `Board::new()` function
@@ -118,10 +118,12 @@ impl Board {
     /// Step by choosing a tile. Panics if index on remaining tiles (`[Board::options()]`) is invalid.
     pub fn step(&mut self, tile: u8) {
         self.set_tile(tile);
-        // self.update_score();
 
         // increase step
         self.step += 1;
+
+        self.update_score();
+
         // switch players
         self.active = match self.active {
             Player::Gamma => Player::Delta,
@@ -162,117 +164,116 @@ impl Board {
 
     /// Check for polygons and collect points.
     fn update_score(&mut self) {
+        let intersections = self.intersections();
+        let polys = self.polys(&intersections);
+        self.check_points(&polys);
+    }
+
+    fn check_points(&mut self, polys: &Vec<Vec<Vec2D<f64>>>) {
+        for poly in polys {
+            // iterate through all free points. could be optimized with `flatten` and `filter`
+            // self.points.iter().enumerate().map(|(i, points)| points.iter().filter(|point| point.is_none()).map(||));
+            for (i, points) in self.points.iter_mut().enumerate() {
+                for (j, point) in points.iter_mut().enumerate() {
+                    if let None = point {
+                        // the crossing number algo does not work for non-simple polys
+                        // thats why we have to use the winding number algo
+                        if winding_number(Vec2D::new(j as f64, i as f64), &poly) != 0 {
+                            *point = Some(self.active);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /// Find all new intersections with the last tile and the path.
+    pub fn intersections(&self) -> Vec<(Vec2D<f64>, usize, Angle, Angle)> {
         // only test with at least 3 tiles
         if self.path.len() > 2 {
+            let mut intersections = Vec::new();
+
             // get latest tile
             let last = self.path.last().unwrap();
 
             // skip the last and connecting tile as they cant intersect
             for (i, tile) in self.path[..self.path.len() - 2].iter().enumerate() {
                 // find every intersections of `tile` and `last`
+                // (section, last_angle, tile_angle)
                 for (section, last_angle, tile_angle) in last.intersects(tile) {
-                    // the crossing number algo does not work for non-simple polys
-                    // thats why we have to use the winding number algo
+                    intersections.push((section, i, last_angle, tile_angle))
+                }
+            }
 
-                    // iterate through all free points. could be optimized with `flatten` and `filter`
-                    for (i, points) in self.points.iter().enumerate() {
-                        for (j, point) in points.iter().enumerate() {
-                            if let None = point {
-                                let mut winding = 0.0;
+            intersections
+        } else {
+            Vec::new()
+        }
+    }
 
-                                for curve in self.path[i..].iter() {
-                                    for n in 0..DETAIL {
-                                        //winding += curve.mid + Vec2D::from_polar(curve.start + curve.off * n as f64 / DETAIL as f64, curve.radius)
-                                        let poly = Into::<Vec2D<f64>>::into(curve.mid)
-                                            + Vec2D::from_polar(
-                                                curve.start + curve.off * n as f64 / DETAIL as f64,
-                                                curve.radius,
-                                            );
-                                    }
-                                }
+    /// Generate all polygons from the new intersections.
+    pub fn polys(
+        &self,
+        intersections: &Vec<(Vec2D<f64>, usize, Angle, Angle)>,
+    ) -> Vec<Vec<Vec2D<f64>>> {
+        let mut polys = Vec::new();
 
-                                /* ![](http://web.archive.org/web/20210504233957/http://geomalgorithms.com/a03-_inclusion.html)
-                                // Copyright 2001, 2012, 2021 Dan Sunday
-                                // This code may be freely used and modified for any purpose
-                                // providing that this copyright notice is included with it.
-                                // There is no warranty for this code, and the author of it cannot
-                                // be held liable for any real or imagined damage from its use.
-                                // Users of this code must verify correctness for their application.
+        let last = self.path.last().unwrap();
 
+        for (section, i, last_angle, tile_angle) in intersections {
+            let mut poly = Vec::new();
 
-                                // a Point is defined by its coordinates {int x, y;}
-                                //===================================================================
+            let mut cut_tile = self.path[*i].clone();
+            cut_tile.off = cut_tile.off - cut_tile.start.min_dist(*tile_angle);
+            cut_tile.start = *tile_angle;
 
+            poly.append(&mut cut_tile.poly(DETAIL));
 
-                                // isLeft(): tests if a point is Left|On|Right of an infinite line.
-                                //    Input:  three points P0, P1, and P2
-                                //    Return: >0 for P2 left of the line through P0 and P1
-                                //            =0 for P2  on the line
-                                //            <0 for P2  right of the line
-                                inline int
-                                isLeft( Point P0, Point P1, Point P2 )
-                                {
-                                    return ( (P1.x - P0.x) * (P2.y - P0.y)
-                                            - (P2.x -  P0.x) * (P1.y - P0.y) );
-                                }
-                                //===================================================================
+            for curve in self.path[i + 1..self.path.len() - 1].iter() {
+                poly.append(&mut curve.poly(DETAIL));
+            }
 
+            let mut cut_last = last.clone();
+            cut_last.off = cut_last.off - last_angle.min_dist(cut_last.start + cut_last.off);
 
-                                // cn_PnPoly(): crossing number test for a point in a polygon
-                                //      Input:   P = a point,
-                                //               V[] = vertex points of a polygon V[n+1] with V[n]=V[0]
-                                //      Return:  0 = outside, 1 = inside
-                                // This code is patterned after [Franklin, 2000]
-                                int
-                                cn_PnPoly( Point P, Point* V, int n )
-                                {
-                                    int    cn = 0;    // the  crossing number counter
+            poly.append(&mut cut_last.poly(DETAIL));
 
-                                    // loop through all edges of the polygon
-                                    for (int i=0; i<n; i++) {    // edge from V[i]  to V[i+1]
-                                    if (((V[i].y <= P.y) && (V[i+1].y > P.y))     // an upward crossing
-                                        || ((V[i].y > P.y) && (V[i+1].y <=  P.y))) { // a downward crossing
-                                            // compute  the actual edge-ray intersect x-coordinate
-                                            float vt = (float)(P.y  - V[i].y) / (V[i+1].y - V[i].y);
-                                            if (P.x <  V[i].x + vt * (V[i+1].x - V[i].x)) // P.x < intersect
-                                                ++cn;   // a valid crossing of y=P.y right of P.x
-                                        }
-                                    }
-                                    return (cn&1);    // 0 if even (out), and 1 if  odd (in)
+            poly.push(poly.first().unwrap().clone());
+            polys.push(poly);
+        }
 
-                                }
-                                //===================================================================
+        polys
+    }
+}
 
+/// Compute the winding number of a polygon $P_n = P_0$ around a point.
+/// ![](http://web.archive.org/web/20210504233957/http://geomalgorithms.com/a03-_inclusion.html)
+/// Copyright 2001, 2012, 2021 Dan Sunday
+// This code may be freely used and modified for any purpose
+// providing that this copyright notice is included with it.
+// There is no warranty for this code, and the author of it cannot
+// be held liable for any real or imagined damage from its use.
+// Users of this code must verify correctness for their application.
+fn winding_number(point: Vec2D<f64>, poly: &Vec<Vec2D<f64>>) -> i32 {
+    if poly.len() < 3 {
+        0
+    } else {
+        let mut wn = 0;
 
-                                // wn_PnPoly(): winding number test for a point in a polygon
-                                //      Input:   P = a point,
-                                //               V[] = vertex points of a polygon V[n+1] with V[n]=V[0]
-                                //      Return:  wn = the winding number (=0 only when P is outside)
-                                int
-                                wn_PnPoly( Point P, Point* V, int n )
-                                {
-                                    int    wn = 0;    // the  winding number counter
-
-                                    // loop through all edges of the polygon
-                                    for (int i=0; i<n; i++) {   // edge from V[i] to  V[i+1]
-                                        if (V[i].y <= P.y) {          // start y <= P.y
-                                            if (V[i+1].y  > P.y)      // an upward crossing
-                                                if (isLeft( V[i], V[i+1], P) > 0)  // P left of  edge
-                                                    ++wn;            // have  a valid up intersect
-                                        }
-                                        else {                        // start y > P.y (no test needed)
-                                            if (V[i+1].y  <= P.y)     // a downward crossing
-                                                if (isLeft( V[i], V[i+1], P) < 0)  // P right of  edge
-                                                    --wn;            // have  a valid down intersect
-                                        }
-                                    }
-                                    return wn;
-                                } */
-                            }
-                        }
+        for i in 0..poly.len() - 1 {
+            if poly[i].y <= point.y {
+                if poly[i + 1].y > point.y {
+                    if point.is_left(&poly[i], &poly[i + 1]) > 0.0 {
+                        wn += 1;
                     }
+                }
+            } else if poly[i + 1].y <= point.y {
+                if point.is_left(&poly[i], &poly[i + 1]) < 0.0 {
+                    wn -= 1;
                 }
             }
         }
+
+        wn
     }
 }

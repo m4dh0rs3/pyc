@@ -114,7 +114,8 @@ impl Polycentrics {
                 viewBox=format!("-1 -1 {0} {0}", self.board.points.len() + 1)
                 xmlns="http://www.w3.org/2000/svg">
                 { self.arrow_svg() }
-                // { self.midpoint_svg() }
+                // { self.midpoint_svg() } // DEBUG VIEW!
+                { self.intersections_svg() } // DEBUG VIEW!
                 { self.path_svg() }
                 { self.points_svg() }
             </svg>
@@ -185,7 +186,7 @@ impl Polycentrics {
     }
 
     /// Render the midpoints of the [`Curve`] to SVG.
-    // debug view!
+    // DEBUG VIEW!
     fn midpoint_svg(&self) -> Html {
         self.board
             .path
@@ -196,6 +197,23 @@ impl Polycentrics {
                         class="midpoint"
                         // set the midpoint and radius
                         cx=curve.mid.x.to_string() cy=curve.mid.y.to_string() r="0.2"
+                    />
+                }
+            })
+            .collect()
+    }
+
+    /// Render intersections points with latest tile.
+    fn intersections_svg(&self) -> Html {
+        self.board
+            .intersections()
+            .iter()
+            .map(|(point, _, _, _)| {
+                html! {
+                    <circle
+                        class=classes!("point", "intersection")
+                        // set the midpoint and radius
+                        cx=point.x.to_string() cy=point.y.to_string() r="0.1"
                     />
                 }
             })

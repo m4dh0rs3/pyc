@@ -35,6 +35,19 @@ impl Curve {
         }
     }
 
+    /// Return point on circle of radius of curve given `[Angle]`.
+    pub fn point(&self, angle: Angle) -> Vec2D<f64> {
+        Into::<Vec2D<f64>>::into(self.mid) + Vec2D::from_polar(angle, self.radius as f64)
+    }
+
+    /// Generate a polygon from curve including the start point, excluding the end point.
+    pub fn poly(&self, detail: usize) -> Vec<Vec2D<f64>> {
+        (0..detail)
+            // Interpolate between start point and start point plus offset
+            .map(|n| self.point(self.start + self.off * n as f64 / detail as f64))
+            .collect()
+    }
+
     /// Check intersection with another [`Curve`].
     /// Based on: [Intersection of two circles](http://paulbourke.net/geometry/circlesphere/)
     pub(crate) fn intersects(&self, other: &Curve) -> Vec<(Vec2D<f64>, Angle, Angle)> {
@@ -65,11 +78,12 @@ impl Curve {
             } else {
                 vec![mid - hypot, mid + hypot]
             })
-            // the declarative is as big as the hard-coded solution, but fancier, so here you go
+            // the declarative version is as big as the hard-coded solution, but fancier, so here you go
             .into_iter()
             .map(|point| {
                 (
                     point,
+                    // tested successfully until here, so circle intersection works, but the angles dont
                     (point - Into::<Vec2D<f64>>::into(self.mid)).angle(),
                     (point - Into::<Vec2D<f64>>::into(other.mid)).angle(),
                 )

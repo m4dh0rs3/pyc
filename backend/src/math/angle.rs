@@ -26,8 +26,17 @@ impl Angle {
         Self((rad_pi + PI) / TAU)
     }
 
+    /// Returns the minmal angular distance between two angles.
+    pub fn min_dist(self, other: Self) -> Angle {
+        if self.0 >= other.0 {
+            self - other
+        } else {
+            other - self
+        }
+    }
+
     /// Returns turn given radians `[0, τ]`.
-    fn from_tau(rad_tau: f64) -> Self {
+    pub fn from_tau(rad_tau: f64) -> Self {
         Self(rad_tau / TAU)
     }
 
@@ -110,5 +119,13 @@ impl ops::Mul<f64> for Angle {
 
     fn mul(self, rhs: f64) -> Self::Output {
         Self(self.0 * rhs)
+    }
+}
+
+impl ops::Div<f64> for Angle {
+    type Output = Self;
+
+    fn div(self, rhs: f64) -> Self::Output {
+        Self(self.0 / rhs)
     }
 }

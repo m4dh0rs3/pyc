@@ -222,6 +222,20 @@ macro_rules! vec2d_trig {
 //vec2d_trig!(f32);
 vec2d_trig!(f64);
 
+impl<T: ops::Sub<Output = T> + ops::Mul<Output = T> + Copy> Vec2D<T> {
+    /// Tests if a point is left, on or right of an infinite line.
+    /// ![](http://web.archive.org/web/20210504233957/http://geomalgorithms.com/a03-_inclusion.html)
+    /// Copyright 2001, 2012, 2021 Dan Sunday
+    // this code may be freely used and modified for any purpose
+    // providing that this copyright notice is included with it
+    // there is no warranty for this code, and the author of it cannot
+    // be held liable for any real or imagined damage from its use
+    // users of this code must verify correctness for their application
+    pub fn is_left(&self, start: &Vec2D<T>, end: &Vec2D<T>) -> T {
+        (end.x - start.x) * (self.y - start.y) - (self.x - start.x) * (end.y - start.y)
+    }
+}
+
 use super::prelude::{bezier, lerp};
 
 impl<T: ops::Add<Output = T> + ops::Sub<Output = T> + ops::Mul<Output = T> + Copy> Vec2D<T> {

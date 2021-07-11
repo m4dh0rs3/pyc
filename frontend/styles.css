@@ -37,6 +37,8 @@ body {
     r: 0.1;
 }
 
+.intersection { fill: red; }
+
 .point-gamma { fill: blue; }
 
 .point-delta { fill: green; }
