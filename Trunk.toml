@@ -1,23 +1,26 @@
-# Trunk config
+# Config for the WASM bundler [Trunk](https://github.com/thedodd/trunk)
+
 [build]
-# The index HTML file to drive the bundling process.
-target = "frontend/index.html"
-# The output dir for all final assets.
+# the index HTML file to drive the bundling process
+target = "frontend/src/index.html"
+# build in release mode
+release = false
+# the output dir for all final assets
 dist = "frontend/public"
-# The public URL from which assets are to be served.
+# the public URL from which assets are to be served
 public_url = "/"
 
 [watch]
-# Paths to watch, defaults to build target parent folder.
-# TODO: move into workspace directory when [#181](https://github.com/thedodd/trunk/issues/181) is fixed
+# paths to watch, defaults to build target parent folder
+# TODO: move into workspace directory when [#181](https://github.com/thedodd/trunk/issues/181) is closed
 path = ["backend/src", "frontend"]
 
 [serve]
-# The port to serve on.
+# the port to serve on
 port = 8080
-# Open a browser tab once the initial build is complete.
+# open a browser tab once the initial build is complete
 open = true
 
 [clean]
-# The output dir for all final assets.
+# the output dir for all final assets
 dist = "frontend/public"

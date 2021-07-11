@@ -1,131 +1,71 @@
-// why is this not generic? Because floats differ in resolution and size
-// but dont really constrain compile time decisions. `f64` may have the
-// only suitiable resolution for close winding numbers
-// TODO: test if `f32` would suffice, because wasm loves f32
-use std::f64::consts::{PI, TAU};
+// generic because I can. f32 would suffice, since new wn algo is solid
 
-/// Holds an value of turns `Turn in [0, 1]` (modolu-intervall).
-// the docs call it a turn, but internally it is refered to as angle
-// keep in mind that a full turn is `1`, not `π`, nor `360`
+/// Holds an value of radians. This is not continuos `[0,π]`, but a value of [`y.atan2(x)`](https://doc.rust-lang.org/std/primitive.f64.html#method.atan2).
 #[derive(Clone, Copy, PartialEq, PartialOrd)]
-pub struct Angle(pub f64);
+pub struct Angle<T>(pub T);
 
-impl Angle {
-    /// Returns a new turn.
-    fn new(angle: f64) -> Self {
+impl<T> Angle<T> {
+    /// Returns a new angle.
+    fn new(angle: T) -> Self {
         Self(angle)
     }
+}
 
-    /// Returns `0` turns.
-    pub fn zero() -> Self {
-        Self(0.0)
-    }
-
-    /// Returns turn given radians `[-π, π]`.
-    pub fn from_pi(rad_pi: f64) -> Self {
-        Self((rad_pi + PI) / TAU)
-    }
-
-    /// Returns the minmal angular distance between two angles.
-    pub fn min_dist(self, other: Self) -> Angle {
-        if self.0 >= other.0 {
-            self - other
-        } else {
-            other - self
-        }
-    }
-
-    /// Returns turn given radians `[0, τ]`.
-    pub fn from_tau(rad_tau: f64) -> Self {
-        Self(rad_tau / TAU)
-    }
-
-    /// Returns a normalized turn in `[0; 1]`.
-    pub fn normal(&self) -> Self {
-        Self(self.0.fract())
-    }
-
-    /// Returns the turn as radians `[0, τ]`.
-    fn into_tau(&self) -> f64 {
-        self.0 * TAU
-    }
-
-    /// Returns the turn as radians `[-π, π]`.
-    pub fn into_pi(&self) -> f64 {
-        self.0 * TAU - PI
-    }
-
-    /// Returns the turn as degree `[0, 360]`.
-    pub fn into_deg(&self) -> f64 {
-        self.0 * 360.0
-    }
-
-    /// Returns a quarter turn.
-    pub fn quarter() -> Self {
-        Self(0.25)
-    }
-
-    /// Returns a half turn.
-    pub fn half() -> Self {
-        Self(0.5)
-    }
-
-    /// Returns a straight turn
-    pub fn straight() -> Self {
-        Self(0.5)
-    }
-
-    /// Returns a three quarter turn.
-    pub fn three_quarter() -> Self {
-        Self(0.75)
-    }
-
-    /// Returns a full turn.
-    pub fn full() -> Self {
-        Self(1.0)
-    }
-
-    /// Returns the sine of the turn.
-    pub fn sin(&self) -> f64 {
-        self.into_tau().sin()
-    }
-
-    /// Returns the cosine of the turn.
-    pub fn cos(&self) -> f64 {
-        self.into_tau().cos()
+impl<T> From<T> for Angle<T> {
+    fn from(angle: T) -> Self {
+        Angle(angle)
     }
 }
+
+// # deref
+// mainly for trigonometric functions of [`f32`] and [`f64`]
 
 use std::ops;
 
-impl ops::Add for Angle {
-    type Output = Self;
+impl<T> ops::Deref for Angle<T> {
+    type Target = T;
 
-    fn add(self, rhs: Self) -> Self::Output {
-        Self(self.0 + rhs.0)
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }
 
-impl ops::Sub for Angle {
-    type Output = Self;
+// # trigonometry
 
-    fn sub(self, rhs: Self) -> Self::Output {
-        Self(self.0 - rhs.0)
-    }
+use super::vec_2d::Vec2D;
+use std::f64::consts::{PI, TAU};
+
+macro_rules! angle_trig {
+    ($Float: ty) => {
+        impl Angle<$Float> {
+            /// Returns `0` radians.
+            pub fn zero() -> Self {
+                Self(0 as $Float)
+            }
+
+            /// Returns a straight angle.
+            pub fn straight() -> Self {
+                Self(PI as $Float)
+            }
+
+            /// Returns a full turn.
+            pub fn full() -> Self {
+                Self(TAU as $Float)
+            }
+
+            /// Get [`Angle<T>`] from [`Vec2D<T>`].
+            pub fn from_vec_2d(vec_2d: Vec2D<$Float>) -> Self {
+                vec_2d.angle()
+            }
+        }
+
+        impl From<Vec2D<$Float>> for Angle<$Float> {
+            fn from(vec_2d: Vec2D<$Float>) -> Self {
+                vec_2d.angle()
+            }
+        }
+    };
 }
 
-impl ops::Mul<f64> for Angle {
-    type Output = Self;
-
-    fn mul(self, rhs: f64) -> Self::Output {
-        Self(self.0 * rhs)
-    }
-}
-
-impl ops::Div<f64> for Angle {
-    type Output = Self;
-
-    fn div(self, rhs: f64) -> Self::Output {
-        Self(self.0 / rhs)
-    }
-}
+// angle_trig!(f64);
+angle_trig!(f32);

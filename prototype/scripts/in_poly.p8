@@ -42,7 +42,7 @@ function _update60()
 	end
 end
 
-// ![](http://web.archive.org/web/20210504233957/http://geomalgorithms.com/a03-_inclusion.html)
+// [](http://web.archive.org/web/20210504233957/http://geomalgorithms.com/a03-_inclusion.html)
 // Copyright 2001, 2012, 2021 Dan Sunday
 // This code may be freely used and modified for any purpose
 // providing that this copyright notice is included with it.

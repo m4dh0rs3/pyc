@@ -14,6 +14,9 @@ impl<T> Vec2D<T> {
 
 use std::ops;
 
+// # addition
+
+// impl only for `T`, that result in `T` after op
 impl<T: ops::Add<Output = T>> ops::Add for Vec2D<T> {
     type Output = Self;
 
@@ -25,6 +28,7 @@ impl<T: ops::Add<Output = T>> ops::Add for Vec2D<T> {
     }
 }
 
+// impl for copy `T` aswell
 impl<T: ops::Add<Output = T> + Copy> ops::Add<T> for Vec2D<T> {
     type Output = Self;
 
@@ -49,6 +53,8 @@ impl<T: ops::AddAssign + Copy> ops::AddAssign<T> for Vec2D<T> {
         self.y += rhs;
     }
 }
+
+// # subtraction
 
 impl<T: ops::Sub<Output = T>> ops::Sub for Vec2D<T> {
     type Output = Self;
@@ -86,6 +92,8 @@ impl<T: ops::SubAssign + Copy> ops::SubAssign<T> for Vec2D<T> {
     }
 }
 
+// # multiplication
+
 impl<T: ops::Mul<Output = T>> ops::Mul for Vec2D<T> {
     type Output = Self;
 
@@ -94,13 +102,6 @@ impl<T: ops::Mul<Output = T>> ops::Mul for Vec2D<T> {
             x: self.x * rhs.x,
             y: self.y * rhs.y,
         }
-    }
-}
-
-impl<T: ops::MulAssign> ops::MulAssign for Vec2D<T> {
-    fn mul_assign(&mut self, rhs: Self) {
-        self.x *= rhs.x;
-        self.y *= rhs.y;
     }
 }
 
@@ -115,6 +116,13 @@ impl<T: ops::Mul<Output = T> + Copy> ops::Mul<T> for Vec2D<T> {
     }
 }
 
+impl<T: ops::MulAssign> ops::MulAssign for Vec2D<T> {
+    fn mul_assign(&mut self, rhs: Self) {
+        self.x *= rhs.x;
+        self.y *= rhs.y;
+    }
+}
+
 impl<T: ops::MulAssign + Copy> ops::MulAssign<T> for Vec2D<T> {
     fn mul_assign(&mut self, rhs: T) {
         self.x *= rhs;
@@ -122,16 +130,7 @@ impl<T: ops::MulAssign + Copy> ops::MulAssign<T> for Vec2D<T> {
     }
 }
 
-// TODO: understand why this collides with impls of `f64`
-/* impl ops::Mul<Vec2D<f64>> for f64 {
-    type Output = Vec2D<f64>;
-    fn mul(self, rhs: Self::Output) -> Self::Output {
-        Self::Output {
-            x: self * rhs.x,
-            y: self * rhs.y,
-        }
-    }
-} */
+// # devision
 
 impl<T: ops::Div<Output = T>> ops::Div for Vec2D<T> {
     type Output = Self;
@@ -155,6 +154,15 @@ impl<T: ops::Div<Output = T> + Copy> ops::Div<T> for Vec2D<T> {
     }
 }
 
+// TODO: conflicting implementations of trait `std::ops::DivAssign<_>` for type `math::vec_2d::Vec2D<_>`
+// conflicting implementation for `math::vec_2d::Vec2D<_>`
+/* impl<T: ops::DivAssign> ops::DivAssign<T> for Vec2D<T> {
+    fn div_assign(&mut self, rhs: T) {
+        self.x /= rhs;
+        self.y /= rhs;
+    }
+} */
+
 impl<T: ops::DivAssign + Copy> ops::DivAssign<T> for Vec2D<T> {
     fn div_assign(&mut self, rhs: T) {
         self.x /= rhs;
@@ -162,7 +170,19 @@ impl<T: ops::DivAssign + Copy> ops::DivAssign<T> for Vec2D<T> {
     }
 }
 
-// TODO: understand why this collides with impls of `f64`
+// # ops with [`f64`]
+// TODO: understand why this collides with impls of [`f64`]
+
+/* impl ops::Mul<Vec2D<f64>> for f64 {
+    type Output = Vec2D<f64>;
+    fn mul(self, rhs: Self::Output) -> Self::Output {
+        Self::Output {
+            x: self * rhs.x,
+            y: self * rhs.y,
+        }
+    }
+} */
+
 /* impl ops::Div<Vec2D<f64>> for f64 {
     type Output = Vec2D<f64>;
     fn div(self, rhs: Self::Output) -> Self::Output {
@@ -173,10 +193,12 @@ impl<T: ops::DivAssign + Copy> ops::DivAssign<T> for Vec2D<T> {
     }
 } */
 
-use super::prelude::Angle;
+// # trigonometry
+
+use super::angle::Angle;
 
 // cannot be generic because there is no(?) trait for trigonmetric types, "Float" would suffice
-macro_rules! vec2d_trig {
+macro_rules! vec_2d_trig {
     ($Float: ty) => {
         impl Vec2D<$Float> {
             /// Returns the length of the vector.
@@ -203,7 +225,7 @@ macro_rules! vec2d_trig {
             }
 
             /// Creates a vector from polar coordinates.
-            pub fn from_polar(angle: Angle, radius: $Float) -> Self {
+            pub fn from_polar(angle: Angle<$Float>, radius: $Float) -> Self {
                 Self {
                     // clockwise direction with increasing angle
                     x: radius * angle.cos() as $Float,
@@ -211,20 +233,38 @@ macro_rules! vec2d_trig {
                 }
             }
 
-            /// Returns turns around the origin.
-            pub fn angle(&self) -> Angle {
-                (Angle::from_pi(self.y.atan2(-self.x).into())).normal()
+            /// Returns [`Angle`] around the origin.
+            pub fn angle(&self) -> Angle<$Float> {
+                // notice that the y axis of the viewport is flipped
+                // [](https://en.wikipedia.org/wiki/Atan2#East-counterclockwise,_north-clockwise_and_south-clockwise_conventions,_etc.)
+                self.y.atan2(self.x).into()
+            }
+
+            /// Rotate [`Vec2D`] around the origin.
+            /// [Rotaion Matrix](https://en.wikipedia.org/wiki/Rotation_matrix)
+            pub fn rotate(&mut self, angle: Angle<$Float>) {
+                let rot_vec: Vec2D<$Float> = angle.into();
+                self.x = self.x * rot_vec.x - self.y * rot_vec.y;
+                self.y = self.x * rot_vec.y + self.y * rot_vec.x;
+            }
+        }
+
+        impl From<Angle<$Float>> for Vec2D<$Float> {
+            fn from(angle: Angle<$Float>) -> Self {
+                Self::from_polar(angle, 1 as $Float)
             }
         }
     };
 }
 
-//vec2d_trig!(f32);
-vec2d_trig!(f64);
+vec_2d_trig!(f32);
+// vec_2d_trig!(f64);
+
+// # wining number helpers
 
 impl<T: ops::Sub<Output = T> + ops::Mul<Output = T> + Copy> Vec2D<T> {
     /// Tests if a point is left, on or right of an infinite line.
-    /// ![](http://web.archive.org/web/20210504233957/http://geomalgorithms.com/a03-_inclusion.html)
+    /// [](http://web.archive.org/web/20210504233957/http://geomalgorithms.com/a03-_inclusion.html)
     /// Copyright 2001, 2012, 2021 Dan Sunday
     // this code may be freely used and modified for any purpose
     // providing that this copyright notice is included with it
@@ -233,26 +273,6 @@ impl<T: ops::Sub<Output = T> + ops::Mul<Output = T> + Copy> Vec2D<T> {
     // users of this code must verify correctness for their application
     pub fn is_left(&self, start: &Vec2D<T>, end: &Vec2D<T>) -> T {
         (end.x - start.x) * (self.y - start.y) - (self.x - start.x) * (end.y - start.y)
-    }
-}
-
-use super::prelude::{bezier, lerp};
-
-impl<T: ops::Add<Output = T> + ops::Sub<Output = T> + ops::Mul<Output = T> + Copy> Vec2D<T> {
-    /// Interpolates linearly from `a` to `b` given t in `[0; 1]`.
-    fn lerp(t: T, a: Self, b: Self) -> Self {
-        Self {
-            x: lerp(t, a.x, b.x),
-            y: lerp(t, a.y, b.y),
-        }
-    }
-
-    /// Interpolates linearly between `a`, `b` and `c` given t in `[0; 1]`.
-    fn bezier(t: T, a: Self, b: Self, c: Self) -> Self {
-        Self {
-            x: bezier(t, a.x, b.x, c.x),
-            y: bezier(t, a.y, b.y, c.y),
-        }
     }
 }
 
@@ -301,11 +321,37 @@ impl<
     }
 }
 
+// # bezier
+
+use super::utils::{bezier, lerp};
+
+impl<T: ops::Add<Output = T> + ops::Sub<Output = T> + ops::Mul<Output = T> + Copy> Vec2D<T> {
+    /// Interpolates linearly from `a` to `b` given t in `[0; 1]`.
+    pub fn lerp(t: T, a: Self, b: Self) -> Self {
+        Self {
+            x: lerp(t, a.x, b.x),
+            y: lerp(t, a.y, b.y),
+        }
+    }
+
+    /// Interpolates linearly between `a`, `b` and `c` given t in `[0; 1]`.
+    pub fn bezier(t: T, a: Self, b: Self, c: Self) -> Self {
+        Self {
+            x: bezier(t, a.x, b.x, c.x),
+            y: bezier(t, a.y, b.y, c.y),
+        }
+    }
+}
+
+// # conversion
+// float and integral are hyperboles, the first is just of higher resolution, the later of less
+
 macro_rules! from_float {
     ($Float: ty, $Integral: ty) => {
         impl From<Vec2D<$Float>> for Vec2D<$Integral> {
             fn from(vec_2d: Vec2D<$Float>) -> Self {
                 Self {
+                    // round down to less precise
                     x: vec_2d.x.round() as $Integral,
                     y: vec_2d.y.round() as $Integral,
                 }

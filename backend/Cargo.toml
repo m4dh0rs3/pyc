@@ -1,10 +1,12 @@
 [package]
 name = "polycentrics-backend"
-description = "Game logic of Polycentrics, including the board and virtual players."
+description = "Game logic (WASM Server) of Polycentrics, including the board and virtual players."
+authors = ["m4dh0rs3 <schoeps.benedikt@gmail.com>", "Angelo Mazzotti <gammagraphics@legalmail.it>"]
+
 readme = "../README.md"
-license = "GPL-3.0-only"
-version = "0.3.0"
-authors = ["m4dh0rs3 <schoeps.benedikt@gmail.com>"]
+license = "GPL-3.0-or-later"
+version = "0.5.0"
+
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

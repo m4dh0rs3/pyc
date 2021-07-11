@@ -1,8 +1,8 @@
-// YES, generics are horrible in this case, but they solve device interoperability
 use std::ops;
 
 /// Projects `x` from `[a; b]` into `[c; d]`.
 pub fn remap<
+    // YES, generics look horrible in this case, but they solve device interoperability
     T: ops::Add<Output = T>
         + ops::Sub<Output = T>
         + ops::Mul<Output = T>

@@ -1,6 +1,6 @@
-pub(crate) mod angle;
-pub(crate) mod utils;
-pub(crate) mod vec_2d;
+mod angle;
+mod utils;
+mod vec_2d;
 
 pub(crate) mod prelude {
     pub use super::{

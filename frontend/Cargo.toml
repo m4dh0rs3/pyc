@@ -1,15 +1,18 @@
 [package]
 name = "polycentrics-frontend"
 description = "Web-frontend for Polycentrics using Yew."
+authors = ["m4dh0rs3 <schoeps.benedikt@gmail.com>", "Angelo Mazzotti <gammagraphics@legalmail.it>"]
+
 readme = "../README.md"
-version = "0.3.0"
-license = "GPL-3.0-only"
-authors = ["m4dh0rs3 <schoeps.benedikt@gmail.com>"]
+license = "GPL-3.0-or-later"
+version = "0.5.0"
+
 edition = "2018"
+
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-# If using wasm-pack (not needed with Trunk)
+# if using wasm-pack (not needed with Trunk)
 # [lib]
 # crate-type = ["cdylib", "rlib"]
 
@@ -17,6 +20,6 @@ edition = "2018"
 backend = { path = "../backend", package = "polycentrics-backend" }
 
 yew = "0.18"
-# wasm-bindgen = "0.2"
-web-sys = { version = "0.3", features = ["HtmlCanvasElement", "CanvasRenderingContext2d"] }
-console_error_panic_hook = "0.1"
+# wasm-bindgen = "0.2" # not needed since yew = "^0.18"
+# web-sys = { version = "0.3", features = ["HtmlCanvasElement", "CanvasRenderingContext2d"] } # not needed for SVG rendering
+console_error_panic_hook = "0.1" # DEBUG FEATURE
