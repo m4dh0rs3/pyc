@@ -5,5 +5,11 @@ mod game;
 mod math;
 // re-export for frontend use
 pub mod prelude {
-    pub use crate::{ math::prelude::*};
+    pub use crate::{
+        game::{
+            board::{Arrow, Board, Player},
+            curve::Curve,
+        },
+        math::prelude::*,
+    };
 }

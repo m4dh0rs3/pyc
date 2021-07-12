@@ -242,10 +242,12 @@ macro_rules! vec_2d_trig {
 
             /// Rotate [`Vec2D`] around the origin.
             /// [Rotaion Matrix](https://en.wikipedia.org/wiki/Rotation_matrix)
-            pub fn rotate(&mut self, angle: Angle<$Float>) {
+            pub fn rotate(&self, angle: Angle<$Float>) -> Self {
                 let rot_vec: Vec2D<$Float> = angle.into();
-                self.x = self.x * rot_vec.x - self.y * rot_vec.y;
-                self.y = self.x * rot_vec.y + self.y * rot_vec.x;
+                Self {
+                    x: self.x * rot_vec.x - self.y * rot_vec.y,
+                    y: self.x * rot_vec.y + self.y * rot_vec.x,
+                }
             }
         }
 
@@ -264,8 +266,7 @@ vec_2d_trig!(f32);
 
 impl<T: ops::Sub<Output = T> + ops::Mul<Output = T> + Copy> Vec2D<T> {
     /// Tests if a point is left, on or right of an infinite line.
-    /// [](http://web.archive.org/web/20210504233957/http://geomalgorithms.com/a03-_inclusion.html)
-    /// Copyright 2001, 2012, 2021 Dan Sunday
+    /// [Copyright 2001, 2012, 2021 Dan Sunday](http://web.archive.org/web/20210504233957/http://geomalgorithms.com/a03-_inclusion.html)
     // this code may be freely used and modified for any purpose
     // providing that this copyright notice is included with it
     // there is no warranty for this code, and the author of it cannot
@@ -293,7 +294,9 @@ impl<
     }
 
     /// Returns the point of intersection of to line segments.
-    fn intersect(p1: Self, p2: Self, r1: Self, r2: Self) -> Option<Self> {
+    /// Not if they touch!
+    // TODO: possibly optimize with bounding box test
+    pub fn intersect(p1: Self, p2: Self, r1: Self, r2: Self) -> Option<Self> {
         let s1 = p2 - p1;
         let s2 = r2 - r1;
 
@@ -319,6 +322,11 @@ impl<
             None
         }
     }
+}
+
+/// Tests if two Axis Aligned Bounding Boxes intersect.
+fn aabb_intersection<T: Ord>(p1: Vec2D<T>, p2: Vec2D<T>, r1: Vec2D<T>, r2: Vec2D<T>) -> bool {
+    p1.x <= r2.x && p2.x >= r1.x && p1.y <= r2.y && p2.y >= r1.y
 }
 
 // # bezier

@@ -33,22 +33,32 @@ impl<T> ops::Deref for Angle<T> {
 // # trigonometry
 
 use super::vec_2d::Vec2D;
-use std::f64::consts::{PI, TAU};
+use std::f64::consts::{FRAC_PI_2, PI, TAU};
 
 macro_rules! angle_trig {
     ($Float: ty) => {
         impl Angle<$Float> {
-            /// Returns `0` radians.
+            /// Returns a zero (0deg) angle.
             pub fn zero() -> Self {
                 Self(0 as $Float)
             }
 
-            /// Returns a straight angle.
+            /// Returns a right (90deg) angle.
+            pub fn quarter() -> Self {
+                Self(FRAC_PI_2 as $Float)
+            }
+
+            /// Returns a straight (180deg) angle.
             pub fn straight() -> Self {
                 Self(PI as $Float)
             }
 
-            /// Returns a full turn.
+            /// Returns a three quarter (270deg) angle.
+            pub fn three_quarter() -> Self {
+                Self((PI + FRAC_PI_2) as $Float)
+            }
+
+            /// Returns a full (360deg) angle.
             pub fn full() -> Self {
                 Self(TAU as $Float)
             }
@@ -62,6 +72,38 @@ macro_rules! angle_trig {
         impl From<Vec2D<$Float>> for Angle<$Float> {
             fn from(vec_2d: Vec2D<$Float>) -> Self {
                 vec_2d.angle()
+            }
+        }
+
+        impl ops::Add for Angle<$Float> {
+            type Output = Self;
+
+            fn add(self, rhs: Self) -> Self::Output {
+                Self(self.0 + rhs.0)
+            }
+        }
+
+        impl ops::Sub for Angle<$Float> {
+            type Output = Self;
+
+            fn sub(self, rhs: Self) -> Self::Output {
+                Self(self.0 - rhs.0)
+            }
+        }
+
+        impl ops::Mul<$Float> for Angle<$Float> {
+            type Output = Self;
+
+            fn mul(self, rhs: $Float) -> Self::Output {
+                Self(self.0 * rhs)
+            }
+        }
+
+        impl ops::Div<$Float> for Angle<$Float> {
+            type Output = Self;
+
+            fn div(self, rhs: $Float) -> Self::Output {
+                Self(self.0 / rhs)
             }
         }
     };

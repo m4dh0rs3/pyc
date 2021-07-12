@@ -34,6 +34,48 @@ macro_rules! curve_trig {
                     .map(|n| self.point(n as $Float / detail as $Float))
                     .collect()
             }
+
+            /// Compute all parameters for intersections.
+            // TODO: optimize with:
+            // http://web.archive.org/web/20090521080353/http://cagd.cs.byu.edu/~557/text/ch7.pdf
+            // https://pomax.github.io/bezierinfo/#curveintersection
+            pub fn intersects(&self, other: &Self, detail: usize) -> Vec<($Float, $Float)> {
+                let mut intersections = Vec::new();
+
+                if self.start == other.start {
+                    intersections.push((0 as $Float, 0 as $Float));
+                }
+
+                if self.end == other.end {
+                    intersections.push((0 as $Float, 0 as $Float));
+                }
+
+                if self.start == other.start && self.end == other.end {
+                    intersections
+                } else {
+                    let self_path = self.path(detail);
+                    let other_path = other.path(detail);
+
+                    // TODO: optimize with `Peekable`
+                    for i in 0..self_path.len() - 1 {
+                        for j in 0..other_path.len() - 1 {
+                            if let Some(_) = Vec2D::intersect(
+                                self_path[i],
+                                self_path[i + 1],
+                                other_path[j],
+                                other_path[j + 1],
+                            ) {
+                                intersections.push((
+                                    i as $Float / detail as $Float,
+                                    j as $Float / detail as $Float,
+                                ))
+                            }
+                        }
+                    }
+
+                    intersections
+                }
+            }
         }
     };
 }
@@ -46,24 +88,24 @@ impl Curve {
     pub fn convex_4x3() -> Vec<Self> {
         vec![
             // up right
-            Self { start: Vec2D::zero(), mid: Vec2D::new(0,  1) * 3, end: Vec2D::new( 1,  1) * 3, },
-            Self { start: Vec2D::zero(), mid: Vec2D::new(0,  1) * 2, end: Vec2D::new( 1,  1) * 2, },
-            Self { start: Vec2D::zero(), mid: Vec2D::new(0,  1) * 1, end: Vec2D::new( 1,  1) * 1, },
-
-            // up left
-            Self { start: Vec2D::zero(), mid: Vec2D::new(0,  1) * 1, end: Vec2D::new(-1,  1) * 1, },
-            Self { start: Vec2D::zero(), mid: Vec2D::new(0,  1) * 2, end: Vec2D::new(-1,  1) * 2, },
-            Self { start: Vec2D::zero(), mid: Vec2D::new(0,  1) * 3, end: Vec2D::new(-1,  1) * 3, },
-
-            // down right
             Self { start: Vec2D::zero(), mid: Vec2D::new(0, -1) * 3, end: Vec2D::new( 1, -1) * 3, },
             Self { start: Vec2D::zero(), mid: Vec2D::new(0, -1) * 2, end: Vec2D::new( 1, -1) * 2, },
             Self { start: Vec2D::zero(), mid: Vec2D::new(0, -1) * 1, end: Vec2D::new( 1, -1) * 1, },
 
-            // down right
+            // up left
             Self { start: Vec2D::zero(), mid: Vec2D::new(0, -1) * 1, end: Vec2D::new(-1, -1) * 1, },
             Self { start: Vec2D::zero(), mid: Vec2D::new(0, -1) * 2, end: Vec2D::new(-1, -1) * 2, },
             Self { start: Vec2D::zero(), mid: Vec2D::new(0, -1) * 3, end: Vec2D::new(-1, -1) * 3, },
+
+            // down right
+            Self { start: Vec2D::zero(), mid: Vec2D::new(0,  1) * 3, end: Vec2D::new( 1,  1) * 3, },
+            Self { start: Vec2D::zero(), mid: Vec2D::new(0,  1) * 2, end: Vec2D::new( 1,  1) * 2, },
+            Self { start: Vec2D::zero(), mid: Vec2D::new(0,  1) * 1, end: Vec2D::new( 1,  1) * 1, },
+
+            // down right
+            Self { start: Vec2D::zero(), mid: Vec2D::new(0,  1) * 1, end: Vec2D::new(-1,  1) * 1, },
+            Self { start: Vec2D::zero(), mid: Vec2D::new(0,  1) * 2, end: Vec2D::new(-1,  1) * 2, },
+            Self { start: Vec2D::zero(), mid: Vec2D::new(0,  1) * 3, end: Vec2D::new(-1,  1) * 3, },
         ]
     }
 }
@@ -76,7 +118,7 @@ impl fmt::Debug for Curve {
             f,
             "{} {} {}x",
             if self.end.x > 0 { "Right" } else { "Left" },
-            if self.mid.y > 0 { "Up" } else { "Down" },
+            if self.mid.y > 0 { "Down" } else { "Up" },
             self.end.x.abs()
         )
     }
