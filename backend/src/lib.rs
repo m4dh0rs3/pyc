@@ -13,3 +13,7 @@ pub mod prelude {
         math::prelude::*,
     };
 }
+
+// TODO: Thursday:
+//  - Add start and end control points from curves in poly to points on board
+//  - Intersect previeous control points does not yet work?

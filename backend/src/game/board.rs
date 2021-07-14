@@ -176,7 +176,7 @@ impl Board {
     }
 
     /// Find all new intersections with the last tile and the path.
-    pub fn intersections(&self) -> Vec<(usize, (f32, f32))> {
+    pub fn intersections(&self) -> Vec<(usize, (usize, usize))> {
         // only test with at least 3 tiles
         if self.path.len() > 2 {
             let mut intersections = Vec::new();
@@ -200,7 +200,7 @@ impl Board {
     }
 
     /// Generate all polygons from the new intersections.
-    pub fn polys(&self, intersections: &Vec<(usize, (f32, f32))>) -> Vec<Vec<Vec2D<f32>>> {
+    pub fn polys(&self, intersections: &Vec<(usize, (usize, usize))>) -> Vec<Vec<Vec2D<f32>>> {
         let mut polys = Vec::new();
 
         let last = self.path.last().unwrap();
@@ -208,8 +208,7 @@ impl Board {
         for (i, (last_t, tile_t)) in intersections {
             let mut poly = Vec::new();
 
-            // TODO: check if the multiplaction does realy work
-            let mut tile: Vec<Vec2D<f32>> = ((tile_t * DETAIL as f32) as usize..DETAIL)
+            let mut tile: Vec<Vec2D<f32>> = (*tile_t..DETAIL)
                 .map(|n| self.path[*i].point(n as f32 / DETAIL as f32))
                 .collect();
 
@@ -219,7 +218,7 @@ impl Board {
                 poly.append(&mut tile.path(DETAIL));
             }
 
-            let mut last: Vec<Vec2D<f32>> = (0..(last_t * DETAIL as f32) as usize)
+            let mut last: Vec<Vec2D<f32>> = (0..*last_t)
                 .map(|n| last.point(n as f32 / DETAIL as f32))
                 .collect();
 

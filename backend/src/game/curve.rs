@@ -39,15 +39,15 @@ macro_rules! curve_trig {
             // TODO: optimize with:
             // http://web.archive.org/web/20090521080353/http://cagd.cs.byu.edu/~557/text/ch7.pdf
             // https://pomax.github.io/bezierinfo/#curveintersection
-            pub fn intersects(&self, other: &Self, detail: usize) -> Vec<($Float, $Float)> {
+            pub fn intersects(&self, other: &Self, detail: usize) -> Vec<(usize, usize)> {
                 let mut intersections = Vec::new();
 
                 if self.start == other.start {
-                    intersections.push((0 as $Float, 0 as $Float));
+                    intersections.push((0, 0));
                 }
 
                 if self.end == other.end {
-                    intersections.push((0 as $Float, 0 as $Float));
+                    intersections.push((detail, detail));
                 }
 
                 if self.start == other.start && self.end == other.end {
@@ -65,10 +65,7 @@ macro_rules! curve_trig {
                                 other_path[j],
                                 other_path[j + 1],
                             ) {
-                                intersections.push((
-                                    i as $Float / detail as $Float,
-                                    j as $Float / detail as $Float,
-                                ))
+                                intersections.push((i, j))
                             }
                         }
                     }

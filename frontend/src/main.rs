@@ -259,4 +259,21 @@ impl Polycentrics {
             />
         }
     }
+
+    // / Render intersections points with latest tile.
+    /* fn intersections_svg(&self) -> Html {
+        self.board
+            .intersections()
+            .iter()
+            .map(|(point, _, _, _)| {
+                html! {
+                    <circle
+                        class=classes!("point", "intersection")
+                        // set the midpoint and radius
+                        cx=point.x.to_string() cy=point.y.to_string() r="0.1"
+                    />
+                }
+            })
+            .collect()
+    } */
 }
