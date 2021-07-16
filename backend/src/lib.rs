@@ -14,6 +14,6 @@ pub mod prelude {
     };
 }
 
-// TODO: Thursday:
+// TODO: saturday:
 //  - Add start and end control points from curves in poly to points on board
-//  - Intersect previeous control points does not yet work?
+//  - Better Bezier intersection algo: for cubic solve algebraically

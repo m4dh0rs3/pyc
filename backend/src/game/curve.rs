@@ -31,6 +31,7 @@ macro_rules! curve_trig {
             pub fn path(&self, detail: usize) -> Vec<Vec2D<$Float>> {
                 // interpolate
                 (0..detail)
+                    // generate point on bezier curve on `n`-th step of a `detail` devision
                     .map(|n| self.point(n as $Float / detail as $Float))
                     .collect()
             }
@@ -50,7 +51,17 @@ macro_rules! curve_trig {
                     intersections.push((detail, detail));
                 }
 
-                if self.start == other.start && self.end == other.end {
+                if self.start == other.end {
+                    intersections.push((0, detail));
+                }
+
+                if self.end == other.start {
+                    intersections.push((detail, 0));
+                }
+
+                if (self.start == other.start && self.end == other.end)
+                    || (self.start == other.end && self.end == other.start)
+                {
                     intersections
                 } else {
                     let self_path = self.path(detail);
