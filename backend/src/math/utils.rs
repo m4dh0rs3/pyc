@@ -1,38 +1,15 @@
-use std::ops;
-
-/// Projects `x` from `[a; b]` into `[c; d]`.
-pub fn remap<
-    // YES, generics look horrible in this case, but they solve device interoperability
-    T: ops::Add<Output = T>
-        + ops::Sub<Output = T>
-        + ops::Mul<Output = T>
-        + ops::Div<Output = T>
-        + Copy,
->(
-    x: T,
-    a: T,
-    b: T,
-    c: T,
-    d: T,
-) -> T {
-    x / (b - a) * (d - c) + c
-}
+use crate::Float;
 
 /// Interpolates linearly from `a` to `b` given t in `[0; 1]`.
-pub fn lerp<T: ops::Add<Output = T> + ops::Sub<Output = T> + ops::Mul<Output = T> + Copy>(
-    t: T,
-    a: T,
-    b: T,
-) -> T {
+// TODO: decide if inline should be used
+// #[inline]
+pub fn lerp(t: Float, a: Float, b: Float) -> Float {
     a + t * (b - a)
 }
 
 /// Interpolates linearly between `a`, `b` and `c` given t in `[0; 1]`.
-pub fn bezier<T: ops::Add<Output = T> + ops::Sub<Output = T> + ops::Mul<Output = T> + Copy>(
-    t: T,
-    a: T,
-    b: T,
-    c: T,
-) -> T {
+/// [Quadratic Bezier Curve](https://en.wikipedia.org/wiki/B%C3%A9zier_curve#Quadratic_B%C3%A9zier_curves)
+// #[inline]
+pub fn bezier(t: Float, a: Float, b: Float, c: Float) -> Float {
     lerp(t, lerp(t, a, b), lerp(t, b, c))
 }

@@ -1,2 +1,4 @@
-target
-frontend/public
+.vscode/
+frontend/public/
+target/
+Cargo.lock

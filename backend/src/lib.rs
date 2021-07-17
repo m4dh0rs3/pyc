@@ -1,6 +1,9 @@
 //! # Polycentrics
 //! Game logic (WASM Server) of Polycentrics, including the board and virtual players.
 
+// the precision type
+type Float = f32;
+
 mod game;
 mod math;
 // re-export for frontend use
@@ -16,4 +19,4 @@ pub mod prelude {
 
 // TODO: saturday:
 //  - Add start and end control points from curves in poly to points on board
-//  - Better Bezier intersection algo: for cubic solve algebraically
+//  - Better Bezier intersection algorithm: for cubic solve algebraically

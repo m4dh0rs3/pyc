@@ -5,15 +5,14 @@ authors = ["m4dh0rs3 <schoeps.benedikt@gmail.com>", "Angelo Mazzotti <gammagraph
 
 readme = "../README.md"
 license = "GPL-3.0-or-later"
-version = "0.5.0"
+version = "0.6.0"
 
 edition = "2018"
 
-
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-# if using wasm-pack (not needed with Trunk)
 # [lib]
+# if using wasm-pack (not needed with Trunk)
 # crate-type = ["cdylib", "rlib"]
 
 [dependencies]
@@ -22,4 +21,4 @@ backend = { path = "../backend", package = "polycentrics-backend" }
 yew = "0.18"
 # wasm-bindgen = "0.2" # not needed since yew = "^0.18"
 # web-sys = { version = "0.3", features = ["HtmlCanvasElement", "CanvasRenderingContext2d"] } # not needed for SVG rendering
-console_error_panic_hook = "0.1" # DEBUG FEATURE
+console_error_panic_hook = "0.1" # DEBUG FEATURE TODO: include only in release builds

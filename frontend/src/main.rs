@@ -24,7 +24,7 @@ struct GameProps {
     size: u8,
     // does not need "render only board, not tile pad"
     // because its deduced from `board.state`
-    // maybe later first player, and preconfiguration hash
+    // TODO: later first player, and pre configuration hash
 }
 
 impl Default for GameProps {
@@ -47,15 +47,18 @@ impl Component for Polycentrics {
 
     /// Render new element of [`Polycentrics`] to [`Html`].
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        // inital drawcall
+        // initial draw call
         link.send_message(Self::Message::RenderBoard);
 
         Self {
             link,
             board: pyc::Board {
                 arrow: pyc::Arrow {
-                    position: pyc::Vec2D::new(props.size as i8 / 2, props.size as i8 / 2),
-                    angle: pyc::Angle::three_quarter(),
+                    pos: pyc::Vec2D {
+                        x: props.size as i8 / 2,
+                        y: props.size as i8 / 2,
+                    },
+                    dir: pyc::Direction::North,
                 },
                 points: vec![vec![None; props.size as usize]; props.size as usize],
                 ..Default::default()
@@ -67,7 +70,7 @@ impl Component for Polycentrics {
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Self::Message::RenderBoard => {
-                // re-renders automatically with view when `ShouldRender == true`
+                // re renders automatically with view when `ShouldRender == true`
                 // update dom
                 true
             }
@@ -75,7 +78,7 @@ impl Component for Polycentrics {
                 // place tile on board
                 self.board.step(tile);
 
-                // rerender the board by updating view
+                // re render the board by updating view
                 self.link.send_message(Self::Message::RenderBoard);
 
                 // because view is now already refreshed, do not update again
@@ -85,13 +88,14 @@ impl Component for Polycentrics {
     }
 
     /// Default set to false, as game properties can not change while playing.
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
+    // TODO: reference to `self` is not needed, so `_`?
+    fn change(&mut self, _: Self::Properties) -> ShouldRender {
         // should only return "true" if new properties are different to
         // previously received properties.
         false
     }
 
-    // Rendered will do nothing by default, so no implementation
+    // # rendered will do nothing by default, so no implementation
 
     /// Render [`Html`] view of [`Polycentrics`].
     fn view(&self) -> Html {
@@ -104,21 +108,27 @@ impl Component for Polycentrics {
     }
 }
 
+// # HTML views
+
 impl Polycentrics {
     /// SVG view of the board.
     // not a component to reduce complexity.
-    // if you want non-interactive, set `Board.state`
+    // if you want non interactive, set `Board.state`
     // to `State::Draw | State::Victory(_)`
     fn board_view(&self) -> Html {
         html! {
             <svg
                 class="board"
+                xmlns="http://www.w3.org/2000/svg"
+
                 // could be optimized to only render to string once,
                 // but needs to be cloned anyway
                 width=self.board.points.len().to_string()
                 height=self.board.points.len().to_string()
+
+                // TODO: maybe 0.5 looks better?
                 viewBox=format!("-1 -1 {0} {0}", self.board.points.len() + 1)
-                xmlns="http://www.w3.org/2000/svg">
+            >
                 // reversed stack draw
                 // { self.midpoint_svg() } // DEBUG VIEW!
                 // { self.intersections_svg() } // DEBUG VIEW!
@@ -143,6 +153,7 @@ impl Polycentrics {
                     .enumerate()
                     .map(|(i, curve)| {
                         html! {
+                            // TODO: replace with SVG view
                             <button class="tile" onclick=self.link.callback(move |_| GameMsg::SetTile(i))>{ format!("{:?}", curve) }</button>
                         }
                     })
@@ -175,7 +186,7 @@ impl Polycentrics {
                                 }),
                                 None => classes!("point")
                             }
-                            // set position to the indecies
+                            // set position to the indices
                             cx=i.to_string() cy=j.to_string()
                             // the [geometric property `r` of svg 2](https://svgwg.org/svg2-draft/geometry.html#R) is not currently (88) supported in firefox
                             // TODO: remove when supported, also at `midpoint_svg()`
@@ -224,7 +235,7 @@ impl Polycentrics {
             .collect()
     }
 
-    /// Render the midpoints of the [`Curve`] to SVG.
+    /* /// Render the midpoints of the [`Curve`] to SVG.
     // DEBUG VIEW!
     fn midpoint_svg(&self) -> Html {
         self.board
@@ -240,28 +251,37 @@ impl Polycentrics {
                 }
             })
             .collect()
-    }
+    } */
 
     /// Render the arrow of [`Board`] to SVG.
     fn arrow_svg(&self) -> Html {
-        use std::f32::consts::TAU;
+        // use std::f32::consts::TAU;
 
         html! {
             // TODO: something fancier than line
             <line
                 class="arrow"
                 // set position
-                x1=self.board.arrow.position.x.to_string() y1=self.board.arrow.position.y.to_string()
+                x1=self.board.arrow.pos.x.to_string() y1=self.board.arrow.pos.y.to_string()
                 // the arrow statically points to the right,
-                x2={ self.board.arrow.position.x as f64 + 0.5 }.to_string() y2=self.board.arrow.position.y.to_string()
-                // and than gets rotated
-                transform=format!("rotate({} {} {})", 360.0 * self.board.arrow.angle.0 / TAU, &self.board.arrow.position.x, &self.board.arrow.position.y)
+                x2={ self.board.arrow.pos.x as f32 + (match self.board.arrow.dir {
+                    pyc::Direction::North | pyc::Direction::South => 0,
+                    pyc::Direction::West => -1,
+                    pyc::Direction::East => 1,
+                } as f32) / 2.0 }.to_string()
+                y2={ self.board.arrow.pos.y as f32 + (match self.board.arrow.dir {
+                    pyc::Direction::West | pyc::Direction::East => 0,
+                    pyc::Direction::North => -1,
+                    pyc::Direction::South => 1,
+                } as f32) / 2.0 }.to_string()
+                /* // and than gets rotated
+                transform=format!("rotate({} {} {})", 360.0 * self.board.arrow.angle.0 / TAU, &self.board.arrow.position.x, &self.board.arrow.position.y) */
             />
         }
     }
 
-    // / Render intersections points with latest tile.
-    /* fn intersections_svg(&self) -> Html {
+    /* /// Render intersections points with latest tile.
+    fn intersections_svg(&self) -> Html {
         self.board
             .intersections()
             .iter()

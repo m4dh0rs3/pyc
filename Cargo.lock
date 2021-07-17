@@ -194,11 +194,11 @@ dependencies = [
 
 [[package]]
 name = "polycentrics-backend"
-version = "0.5.0"
+version = "0.6.0"
 
 [[package]]
 name = "polycentrics-frontend"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "console_error_panic_hook",
  "polycentrics-backend",

@@ -30,10 +30,6 @@ function _init()
 	end
 end
 
-function _update()
-	
-end
-
 function _draw()
 	cls(5)
 	
@@ -59,6 +55,8 @@ function _draw()
 		circfill(vj.x,vj.y,2,12)
 		circfill(vi.x,vi.y,1,8)
 	end
+	
+	print(#is)
 end
 
 function find_ints(bs)

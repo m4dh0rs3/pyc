@@ -5,7 +5,7 @@ authors = ["m4dh0rs3 <schoeps.benedikt@gmail.com>", "Angelo Mazzotti <gammagraph
 
 readme = "../README.md"
 license = "GPL-3.0-or-later"
-version = "0.5.0"
+version = "0.6.0"
 
 edition = "2018"
 
