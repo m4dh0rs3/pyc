@@ -1,6 +1,11 @@
 //! # Polycentrics
 //! Game logic (WASM Server) of Polycentrics, including the board and virtual players.
 
+/* // use `wee_alloc` as the global allocator when compiling to wasm
+#[cfg(target_arch = "wasm32")]
+#[global_allocator]
+static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT; */
+
 // the precision type
 type Float = f32;
 

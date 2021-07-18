@@ -2,9 +2,17 @@
 name = "polycentrics-frontend"
 description = "Web-frontend for Polycentrics using Yew."
 authors = ["m4dh0rs3 <schoeps.benedikt@gmail.com>", "Angelo Mazzotti <gammagraphics@legalmail.it>"]
+homepage = "https://github.com/m4dh0rs3/pyc" # TODO: replace with 
+
+repository = "https://github.com/m4dh0rs3/pyc"
+# keywords = ["bezier", "game", "poly"] # keywords only for library
+# categories = ["games", "mathematics", "wasm", "web-programming"] # categories only for library
+# documentation not needed for frontend as WASM executable
+publish = false # prevent frontend to be published as it is an exec
 
 readme = "../README.md"
 license = "GPL-3.0-or-later"
+# license-file = "../LICENSE.md" # as this is a standard license, no path needed
 version = "0.6.0"
 
 edition = "2018"
@@ -19,6 +27,7 @@ edition = "2018"
 backend = { path = "../backend", package = "polycentrics-backend" }
 
 yew = "0.18"
+wee_alloc = "0.4" # optimize for size
 # wasm-bindgen = "0.2" # not needed since yew = "^0.18"
 # web-sys = { version = "0.3", features = ["HtmlCanvasElement", "CanvasRenderingContext2d"] } # not needed for SVG rendering
-console_error_panic_hook = "0.1" # DEBUG FEATURE TODO: include only in release builds
+console_error_panic_hook = "0.1" # DEBUG FEATURE

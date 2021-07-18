@@ -136,7 +136,7 @@ impl Board {
     /// Set a tile on the [`Board`].
     // to understand what happens, have a look at this (deprecated since v0.5.0): [GeoGebra PYC](https://www.geogebra.org/calculator/qp8gjrsz)
     fn set_tile(&mut self, tile: usize) {
-        // removes and retunrns the tile, panics if the index is out of bounds
+        // removes and returns the tile, panics if the index is out of bounds
         let mut tile = self.tiles.remove(tile as usize);
 
         let new_dir = self.arrow.dir

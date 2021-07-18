@@ -2,8 +2,10 @@ pico-8 cartridge // http://www.pico-8.com
 version 32
 __lua__
 function _init()
+	d=12
+	
 	bs={}
-	for i=1,4 do
+	for i=1,3 do
 		local h
 		if rnd(1)>.5 then
 			h=1
@@ -20,8 +22,8 @@ function _init()
 		
 		add(bs,{
 			p={
-				x=32+rnd(64),
-				y=32+rnd(64),
+				x=48+rnd(32),
+				y=48+rnd(32),
 			},
 			r=32+rnd(16),
 			h=h,
@@ -40,23 +42,23 @@ function _draw()
 		local d=6
 		for n=0,d do
 			local v=point(b,n/d)
-			if(o)line(o.x,o.y,v.x,v.y,11)
+			if(o)line(o.x,o.y,v.x,v.y,12)
 			o=v
 		end
 		
 		pset(b.p.x,b.p.y,9)
 		pset(b.p.x+b.r*b.h,b.p.y+b.r*b.v,9)
-		pset(b.p.x,b.p.y+b.r*b.v,9)
+		--pset(b.p.x,b.p.y+b.r*b.v,9)
 	end
 	
 	for s in all(is) do
 		local vi=point(bs[s.i],s.s.i)
 		local vj=point(bs[s.j],s.s.j)
-		circfill(vj.x,vj.y,2,12)
+		circfill(vj.x,vj.y,1,8)
 		circfill(vi.x,vi.y,1,8)
 	end
 	
-	print(#is)
+	print(#is,1,1,8)
 end
 
 function find_ints(bs)
@@ -66,7 +68,7 @@ function find_ints(bs)
 		for j,b2 in pairs(bs) do
 			if i~=j then
 				for s in all(
-					ints(b1,b2,1,1,0,0)
+					ints(b1,b2,0,0,0)
 				) do
 					add(is,{i=i,j=j,s=s})
 				end
@@ -100,9 +102,9 @@ function bezier(t,a,b,c)
 	return lerp(t,lerp(t,a,b),lerp(t,b,c))
 end
 -->8
-function ints(b1,b2,o1,o2,t1,t2)
+function ints(b1,b2,t1,t2,n)
 	local i=point(b1,t1)
-	local a=point(b1,t1+o1)
+	local a=point(b1,t1+(2^-n))
 	local a1={
 		i={
 			x=min(i.x,a.x),
@@ -115,7 +117,7 @@ function ints(b1,b2,o1,o2,t1,t2)
 	}
 	
 	local i=point(b2,t2)
-	local a=point(b2,t2+o2)
+	local a=point(b2,t2+(2^-n))
 	local a2={
 		i={
 			x=min(i.x,a.x),
@@ -134,19 +136,19 @@ function ints(b1,b2,o1,o2,t1,t2)
 	--pset(a2.a.x,a2.a.y,11)
 	
 	if aabb(a1,a2) then
-		--rect(a1.i.x,a1.i.y,a1.a.x,a1.a.y,6)
-		--rect(a2.i.x,a2.i.y,a2.a.x,a2.a.y,6)
+		rect(a1.i.x,a1.i.y,a1.a.x,a1.a.y,6)
+		rect(a2.i.x,a2.i.y,a2.a.x,a2.a.y,6)
 	
-		if o1<0.005 then
-			return {{i=t1+o1/2,j=t2+o2/2}}
+		if n>=d then
+			return {{i=t1+(2^(-n-1)),j=t2+(2^(-n-1))}}
 		else
 			local is={}
 			
 			for s in all(
 				ints(
 					b1,b2,
-					o1/2,o2/2,
-					t1,t2
+					t1,t2,
+					n+1
 				)) do
 				add(is,s)
 			end
@@ -154,8 +156,8 @@ function ints(b1,b2,o1,o2,t1,t2)
 			for s in all(
 				ints(
 					b1,b2,
-					o1/2,o2/2,
-					t1+o1/2,t2
+					t1+(2^(-n-1)),t2,
+					n+1
 				)) do
 				add(is,s)
 			end
@@ -163,8 +165,8 @@ function ints(b1,b2,o1,o2,t1,t2)
 			for s in all(
 				ints(
 					b1,b2,
-					o1/2,o2/2,
-					t1,t2+o2/2
+					t1,t2+(2^(-n-1)),
+					n+1
 				)) do
 				add(is,s)
 			end
@@ -172,8 +174,8 @@ function ints(b1,b2,o1,o2,t1,t2)
 			for s in all(
 				ints(
 					b1,b2,
-					o1/2,o2/2,
-					t1+o1/2,t2+o2/2
+					t1+(2^(-n-1)),t2+(2^(-n-1)),
+					n+1
 				)) do
 				add(is,s)
 			end

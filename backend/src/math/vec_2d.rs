@@ -1,7 +1,7 @@
 use crate::Float;
 
 /// 2-Dimensional vector of `T` on `x` and `y`.
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Vec2D<T> {
     pub x: T,
     pub y: T,

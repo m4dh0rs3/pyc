@@ -2,13 +2,23 @@
 name = "polycentrics-backend"
 description = "Game logic (WASM Server) of Polycentrics, including the board and virtual players."
 authors = ["m4dh0rs3 <schoeps.benedikt@gmail.com>", "Angelo Mazzotti <gammagraphics@legalmail.it>"]
+homepage = "https://github.com/m4dh0rs3/pyc" # TODO: replace with domain
+
+repository = "https://github.com/m4dh0rs3/pyc"
+keywords = ["bezier", "game", "poly"]
+categories = ["games", "mathematics", "wasm", "web-programming"]
+# documentation = "https://docs.rs/pyc" # crates.io will automatically link the crate to the corresponding docs.rs page
 
 readme = "../README.md"
 license = "GPL-3.0-or-later"
+# license-file = "../LICENSE.md" # as this is a standard license, no path needed
 version = "0.6.0"
 
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+# [target.'cfg(target_arch = "wasm32")'.dependencies]
+# wee_alloc = "0.4" # optimize for size when using wasm
 
 [dependencies]

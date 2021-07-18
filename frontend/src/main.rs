@@ -1,8 +1,14 @@
 use backend::prelude as pyc;
 use yew::prelude::*;
 
+// use `wee_alloc` as the global allocator
+// TODO: decide if the 4kB are worth the slowness
+#[global_allocator]
+static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
+
 fn main() {
     // this traces on panic in the js console
+    #[cfg(debug_assertions)]
     std::panic::set_hook(Box::new(console_error_panic_hook::hook));
 
     // mount Polycentrics to body of index.html
