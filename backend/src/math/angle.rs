@@ -1,4 +1,4 @@
-// ---generic because I can. f32 would suffice, since new wn algo is solid---
+// ---generic because I can. f32 would suffice, since new wn algorithm is solid---
 // not generic anymore, to reduce since of lib
 
 /// `u8` version of an angle, cardinal directions.

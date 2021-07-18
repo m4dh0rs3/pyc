@@ -10,7 +10,7 @@ use crate::Float;
 // i could not solve the last one. may be found under tag:
 // [v0.4.0](https://github.com/m4dh0rs3/pyc/tree/v0.4.0)
 // to keep this type, i can't optimize the curve path!
-#[derive(Clone, PartialEq, Eq)] // is clone, because `Board` must be clone
+#[derive(Clone)] // , PartialEq, Eq)] // is clone, because `Board` must be clone
 pub struct Curve {
     // as `Arrow` can move out of border
     // these all lie on a board point, so i8 is sufficient
@@ -23,11 +23,16 @@ pub struct Curve {
 // iter instead of vec to reduce allocation size
 // also it is really nice
 // TODO: maybe remove the box somehow? But vec is also box, so...
-type Path = Box<dyn Iterator<Item = Vec2D<Float>>>;
+// pub(crate) type Path = Box<dyn Iterator<Item = Vec2D<Float>>>;
+pub(crate) type Path = Vec<Vec2D<Float>>;
 
-type Intersection = (Float, Float);
+// parameter describing intersection of two curves
+pub(crate) type Intersection = (Float, Float);
 
+// axis aligned bounding box: (bottom left, top right)
 type AABB = (Vec2D<Float>, Vec2D<Float>);
+
+use super::DETAIL;
 
 impl Curve {
     /// Generate point on bezier curve from t in `[0; 1]`.
@@ -36,15 +41,22 @@ impl Curve {
     }
 
     /// Vertices of a bezier curve between `t in [t_1, t_2]`, including the start point, excluding the end point.
-    pub fn path(&self, detail: usize, t1: Float, t2: Float) -> Path {
+    pub fn path(&self, t1: Float, t2: Float) -> Path {
         let start: Vec2D<Float> = self.start.into();
         let mid: Vec2D<Float> = self.mid.into();
         let end: Vec2D<Float> = self.end.into();
 
-        Box::new((0..detail).map(move |n| {
+        (0..DETAIL)
+            .map(move |n| {
+                // not using self.point() because into
+                Vec2D::<Float>::bezier(lerp(n as Float / DETAIL as Float, t1, t2), start, mid, end)
+            })
+            .collect()
+
+        /* Box::new((0..DETAIL).map(move |n| {
             // not using self.point() because into
-            Vec2D::<Float>::bezier(lerp(n as Float / detail as Float, t1, t2), start, mid, end)
-        }))
+            Vec2D::<Float>::bezier(lerp(n as Float / DETAIL as Float, t1, t2), start, mid, end)
+        })) */
     }
 
     /// Compute axis aligned bounding box assuming curve is y-monotone.
@@ -67,30 +79,33 @@ impl Curve {
     }
 
     /// Compute all parameters for intersections assuming curve is y-monotone
-    pub fn intersects(&self, other: &Self, detail: usize) -> Vec<Intersection> {
+    pub fn intersects(&self, other: &Self) -> Vec<Intersection> {
         // intersections
         let mut ints = Vec::new();
 
-        if self.start == other.start {
-            ints.push((0.0, 0.0));
-        } else if self.start == other.end {
-            ints.push((0.0, 1.0))
-        }
-        // ↕ these two could be chained, if the first condition wasn't there
-        if self.end == other.end {
-            ints.push((1.0, 1.0))
-        } else if self.end == other.start {
-            ints.push((1.0, 0.0))
+        if self.mid != other.mid {
+            if self.start == other.start {
+                ints.push((0.0, 0.0));
+            } else if self.start == other.end {
+                ints.push((0.0, 1.0))
+            }
+            // ↕ these two could be chained, if the first condition wasn't there
+            if self.end == other.end {
+                ints.push((1.0, 1.0))
+            } else if self.end == other.start {
+                ints.push((1.0, 0.0))
+            }
         }
 
         if !((self.start == other.start && self.end == other.end)
             || (self.start == other.end && self.end == other.start))
         {
-            ints.append(&mut self.recursive_ints(other, 0.0, 0.0, 0, detail));
+            ints.append(&mut self.recursive_ints(other, 0.0, 0.0, 0));
         }
 
         // not an iterator, because at first it will be
         // a vec anyway
+        // TODO: filter doubles
         ints
     }
 
@@ -101,7 +116,6 @@ impl Curve {
         self_t: Float,
         other_t: Float,
         n: usize,
-        detail: usize,
     ) -> Vec<Intersection> {
         let offset = (2 as Float).powi(-(n as i32));
 
@@ -111,32 +125,20 @@ impl Curve {
         if aabb_intersect(self_aabb, other_aabb) {
             let next_offset = offset / 2.0; // = (2 as Float).powi(-(n as i32) - 1)
 
-            if n >= detail {
+            // removed detail function overhead, use const instead
+            if n >= DETAIL {
                 return vec![(self_t + next_offset, other_t + next_offset)];
             } else {
                 let mut ints = Vec::new();
 
-                ints.append(&mut self.recursive_ints(other, self_t, other_t, n + 1, detail));
-                ints.append(&mut self.recursive_ints(
-                    other,
-                    self_t + next_offset,
-                    other_t,
-                    n + 1,
-                    detail,
-                ));
-                ints.append(&mut self.recursive_ints(
-                    other,
-                    self_t,
-                    other_t + next_offset,
-                    n + 1,
-                    detail,
-                ));
+                ints.append(&mut self.recursive_ints(other, self_t, other_t, n + 1));
+                ints.append(&mut self.recursive_ints(other, self_t + next_offset, other_t, n + 1));
+                ints.append(&mut self.recursive_ints(other, self_t, other_t + next_offset, n + 1));
                 ints.append(&mut self.recursive_ints(
                     other,
                     self_t + next_offset,
                     other_t + next_offset,
                     n + 1,
-                    detail,
                 ));
 
                 ints

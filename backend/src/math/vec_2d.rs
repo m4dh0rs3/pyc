@@ -42,8 +42,6 @@ impl ops::Mul<i8> for Vec2D<i8> {
     }
 }
 
-// # trigonometry
-
 use super::angle::Direction;
 
 impl Vec2D<i8> {
@@ -60,8 +58,6 @@ impl Vec2D<i8> {
     }
 }
 
-// # bezier
-
 use super::utils::bezier;
 
 impl Vec2D<Float> {
@@ -75,8 +71,20 @@ impl Vec2D<Float> {
     }
 }
 
-// # conversion
+impl Vec2D<Float> {
+    /// Tests if a point is left, on or right of an infinite line.
+    /// [Copyright 2001, 2012, 2021 Dan Sunday](http://web.archive.org/web/20210504233957/http://geomalgorithms.com/a03-_inclusion.html)
+    // this code may be freely used and modified for any purpose
+    // providing that this copyright notice is included with it
+    // there is no warranty for this code, and the author of it cannot
+    // be held liable for any real or imagined damage from its use
+    // users of this code must verify correctness for their application
+    pub fn is_left(&self, start: Vec2D<Float>, end: Vec2D<Float>) -> Float {
+        (end.x - start.x) * (self.y - start.y) - (self.x - start.x) * (end.y - start.y)
+    }
+}
 
+// conversion
 impl From<Vec2D<i8>> for Vec2D<Float> {
     fn from(vec_2d: Vec2D<i8>) -> Self {
         Self {

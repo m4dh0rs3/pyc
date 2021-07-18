@@ -1,5 +1,5 @@
-use super::curve::Curve;
-use crate::{math::prelude::*, Float};
+use super::curve::{Curve, Intersection, Path};
+use crate::{game::DELTA, math::prelude::*, Float};
 
 /// Subject of the game is the [`Board`].
 /// It holds the current state and all data.
@@ -97,8 +97,6 @@ impl Default for Board {
     }
 }
 
-use super::DETAIL;
-
 // no getter functions, because there is a default function
 // for `Board` creation, instead of a `Board::new()` function
 // to reduce complexity. This needs the field to be public anyway.
@@ -122,7 +120,7 @@ impl Board {
     /// Panics if index on remaining tiles ([`Board::options()`]) is out of bounds.
     pub fn step(&mut self, tile: usize) {
         self.set_tile(tile);
-        // self.update_score();
+        self.update_score();
 
         // increase step
         self.step += 1;
@@ -159,5 +157,181 @@ impl Board {
 
         // insert the curve into the path
         self.path.push(tile);
+    }
+
+    /// Check for polygons and collect points.
+    fn update_score(&mut self) {
+        let ints = self.latest_intersections();
+        let polys = self.polys(ints);
+        self.check_points(polys); // , points);
+    }
+
+    /// Find all new intersections with the last tile and the path.
+    pub fn latest_intersections(&self) -> Vec<(usize, Intersection)> {
+        // only test with at least 3 tiles
+        if self.path.len() > 2 {
+            let mut ints = Vec::new();
+
+            // get latest tile
+            let last = self.path.last().unwrap();
+
+            // skip the last and connecting tile as they cant intersect
+            for (i, tile) in self.path[..self.path.len() - 2].iter().enumerate() {
+                // find every intersections of `tile` and `last`
+                // (section, last_angle, tile_angle)
+                // TODO: make map
+                for params in last.intersects(tile) {
+                    ints.push((i, params))
+                }
+            }
+
+            ints
+        } else {
+            Vec::new()
+        }
+    }
+
+    /// Generate all polygons from the new intersections.
+    pub fn polys(&self, ints: Vec<(usize, Intersection)>) -> Vec<Path> {
+        // , Vec<Vec2D<i8>>) {
+        /* // -> Box<dyn Iterator<Item = Path<'a>>>
+        Box::new(ints.iter().map(|(i, (last_t, tile_t))| {
+            self.path[*i]
+                .path(*tile_t, 1.0)
+                .chain(
+                    self.path[i + 1..self.path.len() - 1]
+                        .iter()
+                        .map(|tile| tile.path(0.0, 1.0))
+                        .flatten(),
+                )
+                .chain(self.path.last().unwrap().path(0.0, *last_t))
+                .chain(std::iter::once(self.path[*i].point(0.0)))
+        })) */
+
+        // points that are on polys can be directly included,
+        // and are not always captured by the wn algorithm
+        // let mut points = Vec::new();
+
+        // TODO: replace with map
+        let mut polys = Vec::new();
+
+        for (i, (last_t, tile_t)) in ints {
+            let mut poly = Vec::new();
+
+            // TODO: merge collect into chain?
+            let mut tile: Vec<Vec2D<Float>> = self.path[i].path(tile_t, 1.0);
+            // points.push(self.path[i].end);
+            poly.append(&mut tile);
+
+            for tile in self.path[i + 1..self.path.len() - 1].iter() {
+                poly.append(&mut tile.path(0.0, 1.0));
+                // points.push(tile.end);
+            }
+
+            let mut last: Vec<Vec2D<Float>> = self.path.last().unwrap().path(0.0, last_t);
+            poly.append(&mut last);
+
+            poly.push(poly.first().unwrap().clone());
+            polys.push(poly);
+        }
+
+        polys // , Vec::new())
+    }
+
+    fn check_points(&mut self, polys: Vec<Path>) {
+        // , points: Vec<Vec2D<i8>>) {
+        for poly in polys {
+            // iterate through all free points. could be optimized with `flatten` and `filter`
+            // self.points.iter().enumerate().map(|(i, points)| points.iter().filter(|point| point.is_none()).map(||));
+            for (j, points) in self.points.iter_mut().enumerate() {
+                for (i, point) in points.iter_mut().enumerate() {
+                    if let None = point {
+                        // the crossing number algorithm does not work for non-simple polys
+                        // thats why we have to use the winding number algorithm
+                        /* if winding_number(
+                            Vec2D {
+                                x: i as Float,
+                                y: j as Float,
+                            },
+                            &poly,
+                        ) != 0 */
+
+                        if vec![
+                            Vec2D {
+                                x: i as Float,
+                                y: j as Float,
+                            },
+                            Vec2D {
+                                x: i as Float,
+                                y: j as Float - DELTA,
+                            },
+                            Vec2D {
+                                x: i as Float + DELTA,
+                                y: j as Float,
+                            },
+                            Vec2D {
+                                x: i as Float,
+                                y: j as Float + DELTA,
+                            },
+                            Vec2D {
+                                x: i as Float - DELTA,
+                                y: j as Float,
+                            },
+                        ]
+                        .into_iter()
+                        .map(|variant| winding_number(variant, &poly))
+                        .sum::<i32>()
+                            != 0
+                        {
+                            *point = Some(self.active);
+                        }
+                    }
+                }
+            }
+        }
+
+        /* for point in points {
+            if point.x >= 0
+                && (point.x as usize) < self.points.len()
+                && point.y >= 0
+                && (point.y as usize) < self.points.len()
+            {
+                let board_point = &mut self.points[point.y as usize][point.x as usize];
+                if let None = board_point {
+                    *board_point = Some(self.active);
+                }
+            }
+        } */
+    }
+}
+
+/// Compute the winding number of a polygon $P_n = P_0$ around a point.
+/// ![Copyright 2001, 2012, 2021 Dan Sunday](http://web.archive.org/web/20210504233957/http://geomalgorithms.com/a03-_inclusion.html)
+// This code may be freely used and modified for any purpose
+// providing that this copyright notice is included with it.
+// There is no warranty for this code, and the author of it cannot
+// be held liable for any real or imagined damage from its use.
+// Users of this code must verify correctness for their application.
+fn winding_number(point: Vec2D<Float>, poly: &Vec<Vec2D<Float>>) -> i32 {
+    if poly.len() < 3 {
+        0
+    } else {
+        let mut wn = 0;
+
+        for i in 0..poly.len() - 1 {
+            if poly[i].y <= point.y {
+                if poly[i + 1].y > point.y {
+                    if point.is_left(poly[i], poly[i + 1]) > 0.0 {
+                        wn += 1;
+                    }
+                }
+            } else if poly[i + 1].y <= point.y {
+                if point.is_left(poly[i], poly[i + 1]) < 0.0 {
+                    wn -= 1;
+                }
+            }
+        }
+
+        wn
     }
 }
