@@ -1,5 +1,9 @@
 use super::curve::{Curve, Intersection, Path};
-use crate::{game::DELTA, math::prelude::*, Float};
+use crate::{
+    game::{CONVEX_2X1, CONVEX_3X2, DELTA},
+    math::prelude::*,
+    Float,
+};
 
 /// Subject of the game is the [`Board`].
 /// It holds the current state and all data.
@@ -192,7 +196,7 @@ impl Board {
     }
 
     /// Generate all polygons from the new intersections.
-    pub fn polys(&self, ints: Vec<(usize, Intersection)>) -> Vec<Path> {
+    pub fn polys(&self, ints: Vec<(usize, Intersection)>) -> Vec<(Path, Vec<Vec2D<i8>>)> {
         // , Vec<Vec2D<i8>>) {
         /* // -> Box<dyn Iterator<Item = Path<'a>>>
         Box::new(ints.iter().map(|(i, (last_t, tile_t))| {
@@ -208,82 +212,93 @@ impl Board {
                 .chain(std::iter::once(self.path[*i].point(0.0)))
         })) */
 
-        // points that are on polys can be directly included,
-        // and are not always captured by the wn algorithm
-        // let mut points = Vec::new();
-
         // TODO: replace with map
         let mut polys = Vec::new();
 
         for (i, (last_t, tile_t)) in ints {
-            let mut poly = Vec::new();
+            let mut poly = vec![self.path[i].point(tile_t)];
+
+            // points that are on polys can be directly included,
+            // and are not always captured by the wn algorithm
+            let mut points = Vec::new();
 
             // TODO: merge collect into chain?
-            let mut tile: Vec<Vec2D<Float>> = self.path[i].path(tile_t, 1.0);
-            // points.push(self.path[i].end);
-            poly.append(&mut tile);
+            let tile: Vec<Vec2D<Float>> = self.path[i].minimal_path();
+            points.push(self.path[i].end);
+            poly.extend_from_slice(&tile[(tile_t * tile.len() as Float).ceil() as usize..]);
 
             for tile in self.path[i + 1..self.path.len() - 1].iter() {
-                poly.append(&mut tile.path(0.0, 1.0));
-                // points.push(tile.end);
+                poly.append(&mut tile.minimal_path());
+                points.push(tile.end);
             }
 
-            let mut last: Vec<Vec2D<Float>> = self.path.last().unwrap().path(0.0, last_t);
-            poly.append(&mut last);
+            let last: Vec<Vec2D<Float>> = self.path.last().unwrap().minimal_path();
+            poly.extend_from_slice(&last[..(last_t * last.len() as Float).ceil() as usize]);
 
             poly.push(poly.first().unwrap().clone());
-            polys.push(poly);
+            polys.push((poly, points));
         }
 
         polys // , Vec::new())
     }
 
-    fn check_points(&mut self, polys: Vec<Path>) {
+    #[rustfmt::skip]
+    fn check_points(&mut self, polys: Vec<(Path, Vec<Vec2D<i8>>)>) {
         // , points: Vec<Vec2D<i8>>) {
-        for poly in polys {
+        for (poly, points) in polys {
             // iterate through all free points. could be optimized with `flatten` and `filter`
             // self.points.iter().enumerate().map(|(i, points)| points.iter().filter(|point| point.is_none()).map(||));
-            for (j, points) in self.points.iter_mut().enumerate() {
-                for (i, point) in points.iter_mut().enumerate() {
+            for (j, column) in self.points.iter_mut().enumerate() {
+                for (i, point) in column.iter_mut().enumerate() {
                     if let None = point {
                         // the crossing number algorithm does not work for non-simple polys
                         // thats why we have to use the winding number algorithm
-                        /* if winding_number(
+                        if winding_number(
                             Vec2D {
                                 x: i as Float,
                                 y: j as Float,
                             },
                             &poly,
-                        ) != 0 */
+                        ) != 0 {
+                            *point = Some(self.active);
+                        }
+                    }
+                }
+            }
 
+            for point in points {
+                if point.x >= 0 && point.x < self.points.len() as i8 && point.y >= 0 && point.y < self.points.len() as i8 {
+                    let board_score = &mut self.points[point.y as usize][point.x as usize];
+                    if let None = board_score {
                         if vec![
-                            Vec2D {
-                                x: i as Float,
-                                y: j as Float,
-                            },
-                            Vec2D {
-                                x: i as Float,
-                                y: j as Float - DELTA,
-                            },
-                            Vec2D {
-                                x: i as Float + DELTA,
-                                y: j as Float,
-                            },
-                            Vec2D {
-                                x: i as Float,
-                                y: j as Float + DELTA,
-                            },
-                            Vec2D {
-                                x: i as Float - DELTA,
-                                y: j as Float,
-                            },
+                            Vec2D { x: point.x as Float, y: point.y as Float - DELTA, },
+                            Vec2D { x: point.x as Float + DELTA, y: point.y as Float, },
+                            Vec2D { x: point.x as Float, y: point.y as Float + DELTA, },
+                            Vec2D { x: point.x as Float - DELTA, y: point.y as Float, },
+
+                            Vec2D { x: point.x as Float + DELTA, y: point.y as Float - CONVEX_2X1, },
+                            Vec2D { x: point.x as Float + DELTA, y: point.y as Float - CONVEX_3X2, },
+                            Vec2D { x: point.x as Float + CONVEX_2X1, y: point.y as Float - DELTA, },
+                            Vec2D { x: point.x as Float + CONVEX_3X2, y: point.y as Float - DELTA, },
+
+                            Vec2D { x: point.x as Float + DELTA, y: point.y as Float + CONVEX_2X1, },
+                            Vec2D { x: point.x as Float + DELTA, y: point.y as Float + CONVEX_3X2, },
+                            Vec2D { x: point.x as Float + CONVEX_2X1, y: point.y as Float + DELTA, },
+                            Vec2D { x: point.x as Float + CONVEX_3X2, y: point.y as Float + DELTA, },
+
+                            Vec2D { x: point.x as Float - DELTA, y: point.y as Float - CONVEX_2X1, },
+                            Vec2D { x: point.x as Float - DELTA, y: point.y as Float - CONVEX_3X2, },
+                            Vec2D { x: point.x as Float - CONVEX_2X1, y: point.y as Float - DELTA, },
+                            Vec2D { x: point.x as Float - CONVEX_3X2, y: point.y as Float - DELTA, },
+
+                            Vec2D { x: point.x as Float - DELTA, y: point.y as Float + CONVEX_2X1, },
+                            Vec2D { x: point.x as Float - DELTA, y: point.y as Float + CONVEX_3X2, },
+                            Vec2D { x: point.x as Float - CONVEX_2X1, y: point.y as Float + DELTA, },
+                            Vec2D { x: point.x as Float - CONVEX_3X2, y: point.y as Float + DELTA, },
                         ]
                         .into_iter()
-                        .map(|variant| winding_number(variant, &poly))
-                        .sum::<i32>()
-                            != 0
-                        {
-                            *point = Some(self.active);
+                        .any(|variant| winding_number(variant, &poly) != 0) {
+                            *board_score = Some(self.active);
                         }
                     }
                 }

@@ -160,7 +160,22 @@ impl Polycentrics {
                     .map(|(i, curve)| {
                         html! {
                             // TODO: replace with SVG view
-                            <button class="tile" onclick=self.link.callback(move |_| GameMsg::SetTile(i))>{ format!("{:?}", curve) }</button>
+                            <button class="tile-button" onclick=self.link.callback(move |_| GameMsg::SetTile(i))>
+                                <svg
+                                    class="tile"
+                                    xmlns="http://www.w3.org/2000/svg"
+
+                                    width=3
+                                    height=3
+                                    
+                                    viewBox=format!("{} {} {} {}", if curve.end.x > 0 { -0.2 } else { -3.2 }, if curve.end.y > 0 { -0.2 } else { -3.2 }, 3.4, 3.4)
+                                >
+                                    <path
+                                        class="curve"
+                                        d=format!("M 0 0 Q {} {} {} {}", curve.mid.x, curve.mid.y, curve.end.x, curve.end.y)
+                                    />
+                                </svg>
+                            </button>
                         }
                     })
                     .collect::<Html>()

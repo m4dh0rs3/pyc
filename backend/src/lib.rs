@@ -21,7 +21,3 @@ pub mod prelude {
         math::prelude::*,
     };
 }
-
-// TODO: saturday:
-//  - Add start and end control points from curves in poly to points on board
-//  - Better Bezier intersection algorithm: for cubic solve algebraically

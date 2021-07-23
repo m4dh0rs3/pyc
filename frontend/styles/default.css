@@ -15,7 +15,10 @@ body {
     grid-template-columns: repeat(6, 1fr);
 }
 
-.tile {}
+.tile {
+    width: 100%;
+    height: auto;
+}
 
 .curve {
     stroke: black;

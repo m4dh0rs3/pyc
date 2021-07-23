@@ -23,7 +23,7 @@ pub struct Curve {
 // iter instead of vec to reduce allocation size
 // also it is really nice
 // TODO: maybe remove the box somehow? But vec is also box, so...
-// pub(crate) type Path = Box<dyn Iterator<Item = Vec2D<Float>>>;
+// pub(crate) type Path = Box<dyn Iterator<Item = Vec2D<Float>>>; // [What is the correct way to return an Iterator](https://stackoverflow.com/q/27535289)
 pub(crate) type Path = Vec<Vec2D<Float>>;
 
 // parameter describing intersection of two curves
@@ -38,6 +38,25 @@ impl Curve {
     /// Generate point on bezier curve from t in `[0; 1]`.
     pub fn point(&self, t: Float) -> Vec2D<Float> {
         Vec2D::<Float>::bezier(t, self.start.into(), self.mid.into(), self.end.into())
+    }
+
+    /// Minimal resolution vertices of curve.
+    pub fn minimal_path(&self) -> Path {
+        let start: Vec2D<Float> = self.start.into();
+        let mid: Vec2D<Float> = self.mid.into();
+        let end: Vec2D<Float> = self.end.into();
+
+        // bezier size
+        let d = (self.end.x - self.start.x)
+            .abs()
+            .max((self.end.y - self.start.y).abs()) as usize;
+
+        (0..d)
+            .map(move |n| {
+                // not using self.point() because into
+                Vec2D::<Float>::bezier(lerp(n as Float / d as Float, 0.0, 1.0), start, mid, end)
+            })
+            .collect()
     }
 
     /// Vertices of a bezier curve between `t in [t_1, t_2]`, including the start point, excluding the end point.
